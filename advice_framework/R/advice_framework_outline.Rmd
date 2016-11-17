@@ -2,7 +2,7 @@
 title: "DG MARE"
 author: "Laurence Kell and Niels Hintzen"
 date:   5th to 6th December 2016; Brussels
-output: pdf_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -22,14 +22,6 @@ opts_chunk$set(comment=NA,
                fig.height=3)
 ```
 
-```{r init, echo=FALSE}
-library(plyr)
-library(ggplot2)
-library(kobe)
-library(reshape2)
-
-load("/home/laurie/Desktop/dgMare/data/yft.RData")
-```
 
 ## Outline
 

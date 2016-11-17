@@ -25,7 +25,7 @@ opts_chunk$set(comment=NA,
                message=FALSE, 
                error  =FALSE, 
                echo   =FALSE, 
-               eval   =TRUE,
+               eval   =!TRUE,
                fig.width =6, 
                fig.height=6)
 ```
@@ -36,7 +36,7 @@ library(ggplot2)
 library(kobe)
 library(reshape2)
 
-load("/home/laurie/Desktop/dgMare/data/yft.RData")
+load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/yft.RData")
 
 trk =transform(subset(yft,year%in%1970:2014),stock=stock,harvest=harvest)[,
                   c("year","Scenario","Method","stock","harvest")]
@@ -56,18 +56,18 @@ quad2=rbind(cbind(variable="stock",ddply(msy,.(Method,Scenario),
 
 # Day 1
 
-| Day 1         |                                                       |
-| --------------|:-----------------------------------------------------:|
-| 09:30 – 10:15 | Presentation: The Kobe advice framework               |
-| 10:15 – 10:45 | Presentation: Assessment, data needs and assumptions  |
-| 10:45 – 11:00 | Tea Break:                                            |
-| 11:00 – 12:15 | Exercise:                                             |
-| 12:15 – 13:15 | Lunch:                                                |
-| 13:15 – 14:30 | Presentation: Assessment, data needs and assumptions  |
-| 14:30 – 15:15 | Exercise:                                             |
-| 15:15 – 15:30 | Tea Break:                                            |
-| 15:30 – 16:30 | Presentation: Stock Status and Reference points       |
-| 16:30 – 17:00 | Summary of the day, questions                         |
+| Day 1         |                                                           |
+| --------------|:----------------------------------------------------------|
+| 09:30 – 10:15 | **Presentation:** The Kobe advice framework               |
+| 10:15 – 10:45 | **Presentation:** Assessment, data needs and assumptions  |
+| 10:45 – 11:00 | **Tea Break:**                                            |
+| 11:00 – 12:15 | **Exercise:**                                             |
+| 12:15 – 13:15 | **Lunch:**                                                |
+| 13:15 – 14:30 | **Presentation:** Assessment, data needs and assumptions  |
+| 14:30 – 15:15 | **Exercise:**                                             |
+| 15:15 – 15:30 | **Tea Break:**                                            |
+| 15:30 – 16:30 | **Presentation:** Stock Status and Reference points       |
+| 16:30 – 17:00 | **Summary of the day:** questions                         |
 
 ## The Kobe advice framework               
 
@@ -101,7 +101,7 @@ These will be used to illustrate the advice framework and uncertainty in paramet
 
 Absolute
 
-```{r,echo=FALSE}
+```{r}
 names(msy)[3:4]=c("stock","harvest")
 trk.rel=merge(trk2,melt(msy,id=c("Method","Scenario")),
           by=c("Method","Scenario","variable"))
@@ -115,7 +115,7 @@ ggplot(subset(trk.rel,Method=="SS"&Scenario==1))+
 ```
 
 
-```{r,echo=FALSE}
+```{r}
 ggplot(subset(trk.rel,Method=="SS"&Scenario==1))+
   geom_polygon(aes(x,y,fill=fill),data=subset(quad2,Method=="SS"&Scenario==1)) +
   geom_line(aes(year,value))+
@@ -128,7 +128,7 @@ ggplot(subset(trk.rel,Method=="SS"&Scenario==1))+
 
 
 
-```{r,echo=FALSE}
+```{r}
 ggplot(trk.rel)+
   geom_polygon(aes(x,y,fill=fill),data=quad2) +
   geom_line(aes(year,value,col=factor(Scenario)))+
@@ -141,7 +141,7 @@ ggplot(trk.rel)+
 
 ## Kobe Phase Plot
 
-```{r,echo=FALSE}
+```{r}
 dat=ddply(subset(trk,Method=="SS"&Scenario==1&year<=2014),.(year),
           with, data.frame(stock=median(stock),harvest=median(harvest)))
 
@@ -156,30 +156,27 @@ p
 
 
 Estimates of probability from stock assessments 
-```{r,echo=FALSE}
+```{r}
 p+
   geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",
              data=subset(yft,Method=="SS"&Scenario==1&year%in%2014))
 ```
 
 ## 
-```{r,echo=FALSE}
+```{r}
 dat=ddply(subset(trk,year<=2014),.(Method,Scenario,year),
           with, data.frame(stock=median(stock),harvest=median(harvest)))
 
 kobePhase(dat)+
   geom_path( aes(stock,harvest),col="brown",size=.75)+
-  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0,
-             data=subset(dat,year%in%seq(1950,2014,5)))+
-    geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=2.5,
-             data=subset(dat,year==2014))+
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0)+
   facet_grid(Method~Scenario)
 ```
 
 ## Historical estimates of stock status
 
 ### SS relative
-```{r,echo=FALSE}
+```{r}
 kobePhase(subset(yft,year%in%2014))+
   geom_point(aes(stock,harvest),shape=21,fill="red",col="brown")+
   facet_grid(Method~Scenario)
@@ -188,39 +185,39 @@ kobePhase(subset(yft,year%in%2014))+
 ## 
 
 ## 
-```{r,echo=FALSE}
+```{r}
 kobe:::kobePhaseMar3(transform(subset(yft,year%in%2014),run=paste(Method,Scenario)
                                )[,c("stock","harvest","run")])
 ```
 
-```{r,echo=FALSE}
+```{r}
 kobe:::kobePhaseMar2(transform(subset(yft,year%in%2014),run=paste(Method,Scenario)
                                )[,c("stock","harvest","run")])
 ```
 
 ## Harvest control rules 
 
-```{r,echo=FALSE}
+```{r}
 hcr= data.frame(stock  =c(0.0 ,0.1 , 0.6,2.0), 
                 harvest=c(0.01,0.01, 0.7,0.7))
 kobePhase()+
   geom_line(aes(stock,harvest),data=hcr,col="orange",size=2)
 ```
 
-```{r,echo=FALSE}
+```{r}
 kobePhase(dat)+
   geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0)+
-    geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0)+  
-    geom_line(aes(stock,harvest),data=hcr,col="orange",size=2)
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0)+  
+  geom_line(aes(stock,harvest),data=hcr,col="orange",size=2)
 ```
 
 
-```{r,echo=FALSE}
+```{r}
 kobePhase(dat)+
   geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0,)+
-    geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0)+  
-    geom_line(aes(stock,harvest),data=hcr,col="orange",size=1)+
-    facet_grid(Method~Scenario)
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0)+  
+  geom_line(aes(stock,harvest),data=hcr,col="orange",size=1)+
+  facet_grid(Method~Scenario)
 ```
 
 Next I will
@@ -242,10 +239,10 @@ The provision of fisheries management advice requires the assessment of stock st
 
 Then we can
 
-    i) compare the assessment models
-    ii) run some simulations using a shiny app where we vary options, i.e. M, steepness, ...
-    iii) run simulations with HCR options
-    iiii) convert Catch-at-size to Catch-at-age and run a VPA
++ compare the assessment mode
++ run some simulations using a shiny app where we vary options, i.e. M, steepness, ...
++ run simulations with HCR options
++ convert Catch-at-size to Catch-at-age and run a VPA
 
 
 ### **Exercise:**           
@@ -260,14 +257,14 @@ Then we can
 # Day 2
 
 | Day 2         |                                                       |
-| --------------|:-----------------------------------------------------:|
-| 09:00 – 10:15 | Presentation: Projection scenarios                    |
-| 10:15 – 10:45 | Exercise:                                             |
-| 10:45 – 11:00 | Tea Break:                                            |
-| 11:00 – 12:15 | Presentation: Management Plans                        |
-| 12:15 – 13:15 | Lunch:                                                |
-| 13:15 – 14:00 | Exercise:                                             |
-| 14:00 – 16:00 | Summary of the day, questions                         |
+| --------------|:------------------------------------------------------|
+| 09:00 – 10:15 | **Presentation:** Projection scenario                 |
+| 10:15 – 10:45 | **Exercise:**                                         |
+| 10:45 – 11:00 | **Tea Break:**                                        |
+| 11:00 – 12:15 | **Presentation:** Management Plans                    |
+| 12:15 – 13:15 | **Lunch:**                                            |
+| 13:15 – 14:00 | **Exercise:**                                         |
+| 14:00 – 16:00 | **Summary of the day** questions                      |
 
 
 ## Projection scenarios                    
@@ -292,15 +289,15 @@ Then we can
 
 # Stock Assessment
 
+http://rscloud.iccat.int:3838/swo-med-xsa/
+
 ## Data
 ## Model assumptions
 ## Diagnostics
 ## Reliablity
 ## Stock status wrt reference points
+
 ## Projections
+http://rscloud.iccat.int:3838/swo-med/
 
 Prediction is often used synonymously \citep{bray2009prediction} with forecast, projection and scenario. To avoid confusion we base our definitions on those of the International Panel on Climate Change  \citep[IPCC][]{field2012managing}. A projection is a potential future evolution of a quantity or set of quantities, a prediction or forecast is the result of an attempt to produce an estimate of the actual evolution of the future, while a scenario is a possible, plausible, internally consistent, but not necessarily probable, development.
-
-
-http://rscloud.iccat.int:3838/swo-med-xsa/
-http://rscloud.iccat.int:3838/swo-med/
