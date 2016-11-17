@@ -1,0 +1,306 @@
+---
+title: "Kobe Advice Framework"
+author: "Laurence Kell"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: rmarkdown:::html_document
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{kobe}
+  \usepackage[utf8]{inputenc}
+  %\VignetteEncoding{UTF-8}
+bibliography: refs.bib
+tags: FLPKG FLR
+license: Creative Commons Attribution-ShareAlike 4.0 International
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, echo=FALSE}
+library(knitr)
+
+opts_chunk$set(comment=NA, 
+               warning=FALSE, 
+               message=FALSE, 
+               error  =FALSE, 
+               echo   =FALSE, 
+               eval   =TRUE,
+               fig.width =6, 
+               fig.height=6)
+```
+
+```{r init, echo=FALSE}
+library(plyr)
+library(ggplot2)
+library(kobe)
+library(reshape2)
+
+load("/home/laurie/Desktop/dgMare/data/yft.RData")
+
+trk =transform(subset(yft,year%in%1970:2014),stock=stock,harvest=harvest)[,
+                  c("year","Scenario","Method","stock","harvest")]
+trk2=ddply(melt(trk,id=c("Scenario","Method","year")),.(variable,year,Method,Scenario),with, 
+               median(value))
+msy  =ddply(yft,.(Method,Scenario), with, c("bmsy"=bmsy[!is.na(bmsy)][1],"fmsy"=fmsy[!is.na(fmsy)][1]))
+
+quads=rbind(data.frame(x=c(-Inf,-Inf,Inf,Inf), y=c(-Inf,  1,  1,-Inf), 
+                         fill=as.factor("high")),
+            data.frame(x=c(-Inf,-Inf,Inf,Inf), y=c(   1,Inf,Inf,   1), 
+                         fill=as.factor("low")))
+quad2=rbind(cbind(variable="stock",ddply(msy,.(Method,Scenario), 
+                        transform, y=quads$y*bmsy,x=quads$x,fill=quads$fill)),
+            cbind(variable="harvest",ddply(msy,.(Method,Scenario), 
+                        transform, y=quads$y*fmsy,x=quads$x,fill=quads$fill)))[,-(4:5)]
+```
+
+# Day 1
+
+| Day 1         |                                                       |
+| --------------|:-----------------------------------------------------:|
+| 09:30 – 10:15 | Presentation: The Kobe advice framework               |
+| 10:15 – 10:45 | Presentation: Assessment, data needs and assumptions  |
+| 10:45 – 11:00 | Tea Break:                                            |
+| 11:00 – 12:15 | Exercise:                                             |
+| 12:15 – 13:15 | Lunch:                                                |
+| 13:15 – 14:30 | Presentation: Assessment, data needs and assumptions  |
+| 14:30 – 15:15 | Exercise:                                             |
+| 15:15 – 15:30 | Tea Break:                                            |
+| 15:30 – 16:30 | Presentation: Stock Status and Reference points       |
+| 16:30 – 17:00 | Summary of the day, questions                         |
+
+## The Kobe advice framework               
+
+
+The provision of fisheries management advice requires the assessment of stock status relative to reference points, the prediction of the response of a stock to management, and checking that predictions are consistent with reality.
+
+Elements are
++ Management objectives
++ Target and limit reference points
++ Estimates of probability from stock assessments 
++ Harvest control rules 
++ Risk and uncertainty
+
+
+### Management objectives
+
+
+There is a need to consider a range of management objectives and the trade-offs between them, e.g. related to yield, safety and stability. 
+
+The original objective of the tRFMOs is to keep stocks at a level that will support MSY. It is no longer sufficient to just know where we are, however, we also need to know where we are headed and to assess the impact of uncertainty on our ability to meet management objectives. Therefore to help implement the Precautionary Approach the tRFMOs have proposed limit reference points and are begining to simulation test Harvest Control Rules using MSE. 
+
+It is also important that indicators do not overlap in what they tell us. 
+
+### Stock Status
+
+The data are for the last Yellowfin assessment where there were 4 methods and 2 scenarios related to choice of CPUEs.
+
+These will be used to illustrate the advice framework and uncertainty in parameter estimates, model assumptions and data
+
+## Historical estimates of stock status
+
+Absolute
+
+```{r,echo=FALSE}
+names(msy)[3:4]=c("stock","harvest")
+trk.rel=merge(trk2,melt(msy,id=c("Method","Scenario")),
+          by=c("Method","Scenario","variable"))
+trk.rel=transform(trk.rel,value=value*V1)[,-5]
+
+ggplot(subset(trk.rel,Method=="SS"&Scenario==1))+
+  geom_line(aes(year,value))+
+  facet_grid(variable~.,scale="free_y")+
+  theme_bw()+theme(legend.position="none")+
+  ylab("")+xlab("Year")
+```
+
+
+```{r,echo=FALSE}
+ggplot(subset(trk.rel,Method=="SS"&Scenario==1))+
+  geom_polygon(aes(x,y,fill=fill),data=subset(quad2,Method=="SS"&Scenario==1)) +
+  geom_line(aes(year,value))+
+  facet_grid(variable~.,scale="free_y")+
+  scale_fill_manual(values=c("pink","lightgreen"), guide="none") +  
+  theme_bw()+theme(legend.position="none")+
+  ylab(expression(""))+
+  xlab("Year")
+```
+
+
+
+```{r,echo=FALSE}
+ggplot(trk.rel)+
+  geom_polygon(aes(x,y,fill=fill),data=quad2) +
+  geom_line(aes(year,value,col=factor(Scenario)))+
+  facet_grid(variable~Method,scale="free_y")+
+  scale_fill_manual(values=c("pink","lightgreen"), guide="none") +  
+  theme_bw()+theme(legend.position="none")+
+  ylab(expression(""))+
+  xlab("Year")
+```
+
+## Kobe Phase Plot
+
+```{r,echo=FALSE}
+dat=ddply(subset(trk,Method=="SS"&Scenario==1&year<=2014),.(year),
+          with, data.frame(stock=median(stock),harvest=median(harvest)))
+
+p=kobePhase(dat)+
+  geom_path( aes(stock,harvest),col="brown",size=.75)+
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=2.5,
+             data=subset(dat,year%in%seq(1950,2014,5)))+
+    geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=5.0,
+             data=subset(dat,year==2014))
+p
+```
+
+
+Estimates of probability from stock assessments 
+```{r,echo=FALSE}
+p+
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",
+             data=subset(yft,Method=="SS"&Scenario==1&year%in%2014))
+```
+
+## 
+```{r,echo=FALSE}
+dat=ddply(subset(trk,year<=2014),.(Method,Scenario,year),
+          with, data.frame(stock=median(stock),harvest=median(harvest)))
+
+kobePhase(dat)+
+  geom_path( aes(stock,harvest),col="brown",size=.75)+
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0,
+             data=subset(dat,year%in%seq(1950,2014,5)))+
+    geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=2.5,
+             data=subset(dat,year==2014))+
+  facet_grid(Method~Scenario)
+```
+
+## Historical estimates of stock status
+
+### SS relative
+```{r,echo=FALSE}
+kobePhase(subset(yft,year%in%2014))+
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown")+
+  facet_grid(Method~Scenario)
+```
+
+## 
+
+## 
+```{r,echo=FALSE}
+kobe:::kobePhaseMar3(transform(subset(yft,year%in%2014),run=paste(Method,Scenario)
+                               )[,c("stock","harvest","run")])
+```
+
+```{r,echo=FALSE}
+kobe:::kobePhaseMar2(transform(subset(yft,year%in%2014),run=paste(Method,Scenario)
+                               )[,c("stock","harvest","run")])
+```
+
+## Harvest control rules 
+
+```{r,echo=FALSE}
+hcr= data.frame(stock  =c(0.0 ,0.1 , 0.6,2.0), 
+                harvest=c(0.01,0.01, 0.7,0.7))
+kobePhase()+
+  geom_line(aes(stock,harvest),data=hcr,col="orange",size=2)
+```
+
+```{r,echo=FALSE}
+kobePhase(dat)+
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0)+
+    geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0)+  
+    geom_line(aes(stock,harvest),data=hcr,col="orange",size=2)
+```
+
+
+```{r,echo=FALSE}
+kobePhase(dat)+
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0,)+
+    geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0)+  
+    geom_line(aes(stock,harvest),data=hcr,col="orange",size=1)+
+    facet_grid(Method~Scenario)
+```
+
+Next I will
+i) provide examples of projections based on these,
+ii) do some hindcasting for validation
+iii) project under a HCR
+
+## Stock Assessment, data needs and assumptions  
+
+The provision of fisheries management advice requires the assessment of stock status relative to reference points, the prediction of the response of a stock to management, and checking that predictions are consistent with reality.
+
++ Data
++ Model assumptions
++ Diagnostics
++ Reliablity
++ Stock status wrt reference points
++ Projections
+
+
+Then we can
+
+    i) compare the assessment models
+    ii) run some simulations using a shiny app where we vary options, i.e. M, steepness, ...
+    iii) run simulations with HCR options
+    iiii) convert Catch-at-size to Catch-at-age and run a VPA
+
+
+### **Exercise:**           
+
+## Assessment, data needs and assumptions  
+
+### **Exercise:**                                             
+
+## Stock Status and Reference points       
+
+\newpage
+# Day 2
+
+| Day 2         |                                                       |
+| --------------|:-----------------------------------------------------:|
+| 09:00 – 10:15 | Presentation: Projection scenarios                    |
+| 10:15 – 10:45 | Exercise:                                             |
+| 10:45 – 11:00 | Tea Break:                                            |
+| 11:00 – 12:15 | Presentation: Management Plans                        |
+| 12:15 – 13:15 | Lunch:                                                |
+| 13:15 – 14:00 | Exercise:                                             |
+| 14:00 – 16:00 | Summary of the day, questions                         |
+
+
+## Projection scenarios                    
+### **Exercise:**  
+
+## Management Plans                        
+### **Exercise:**                                             
+
+# Advice Framework
+## Scientific Advice
+
+
+
+
+# Scientific Advice
+
+    
+
+
+## Risk and uncertainty
+
+
+# Stock Assessment
+
+## Data
+## Model assumptions
+## Diagnostics
+## Reliablity
+## Stock status wrt reference points
+## Projections
+
+Prediction is often used synonymously \citep{bray2009prediction} with forecast, projection and scenario. To avoid confusion we base our definitions on those of the International Panel on Climate Change  \citep[IPCC][]{field2012managing}. A projection is a potential future evolution of a quantity or set of quantities, a prediction or forecast is the result of an attempt to produce an estimate of the actual evolution of the future, while a scenario is a possible, plausible, internally consistent, but not necessarily probable, development.
+
+
+http://rscloud.iccat.int:3838/swo-med-xsa/
+http://rscloud.iccat.int:3838/swo-med/

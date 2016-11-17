@@ -1,0 +1,283 @@
+---
+title: "DG MARE"
+author: "Laurence Kell and Niels Hintzen"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, echo=FALSE}
+library(knitr)
+
+opts_chunk$set(comment=NA, 
+               warning=FALSE, 
+               message=FALSE, 
+               error  =FALSE, 
+               echo   =FALSE, 
+               eval   =TRUE,
+               fig.width =7, 
+               fig.height=3)
+```
+
+```{r init, echo=FALSE}
+library(plyr)
+library(ggplot2)
+library(kobe)
+library(reshape2)
+
+load("/home/laurie/Desktop/dgMare/data/yft.RData")
+```
+
+## Outline
+
+An introduction to the current state of the art in Quantitative Fisheries Science as applied by the scientific bodies of the Regional Fisheries Management Organisations (RFMOs), with emphasis on the tuna RFMOs.
+
+The course covers current practice in stock assessment and provision of advice. It also covers the evaluation through simulation of alternative management plans. Presentions will be based on recent examples.
+
+## Learning goals
+
+To 
++ Understand the basic ideas behind the models used to provide advice.
++ Identify the relative advantages and limitations of alternative stock assessment models.
++ Perceive the difficulties in parameter estimation common to all fisheries models and the effect this uncertainty has on the robustness of advice.
++ Provide an introduction to Management Strategy Evaluation and the it requires in management advice frameworks.
++ Be better equipped for a constructive dialogue between managers, scientists and stakeholders on how Quantitative Fisheries Science can help managing fishery systems.
+
+## Organisation
+
+The different models and approaches, and the ideas behind them, are introduced and explained, focusing on
+
++ Data requirements
++ Assumptions
++ Limitations
++ Interpretation of results
+
+Example are runs and the results analysed and dissected, with examples taken from recent scientific outputs of different RFMOs.
+
+## Participants
+
+Around 10-15  DG MARE staff with involvement in scientific activities in RFMOs. They are familiar with scientific work ongoing In RFMOs but most of them have not been involved in hands-on work for several (lasts) years. They should not be expected to run analysis themselves, but access to relevant software and source code will be given for those willing to replicate and explore them in their own time. The course should be open to other DG MARE staff with scientific interests outside RFMOs.
+
+## Agenda
+| Day 1         |                                                       |
+| --------------|:-----------------------------------------------------:|
+| 09:30 – 10:15 | Presentation: The Kobe advice framework               |
+| 10:15 – 10:45 | Presentation: Assessment, data needs and assumptions  |
+| 10:45 – 11:00 | Tea Break:                                            |
+| 11:00 – 12:15 | Exercise:                                             |
+| 12:15 – 13:15 | Lunch:                                                |
+| 13:15 – 14:30 | Presentation: Assessment, data needs and assumptions  |
+| 14:30 – 15:15 | Exercise:                                             |
+| 15:15 – 15:30 | Tea Break:                                            |
+| 15:30 – 16:30 | Presentation: Stock Status and Reference points       |
+| 16:30 – 17:00 | Summary of the day, questions                         |
+
+| Day 2         |                                                       |
+| --------------|:-----------------------------------------------------:|
+| 09:00 – 10:15 | Presentation: Projection scenarios                    |
+| 10:15 – 10:45 | Exercise:                                             |
+| 10:45 – 11:00 | Tea Break:                                            |
+| 11:00 – 12:15 | Presentation: Management Plans                        |
+| 12:15 – 13:15 | Lunch:                                                |
+| 13:15 – 14:00 | Exercise:                                             |
+| 14:00 – 16:00 | Summary of the day, questions                         |
+
+# Advice Framework
+## Scientific Advice
+
+The provision of fisheries management advice requires the assessment of stock status relative to reference points, the prediction of the response of a stock to management, and checking that predictions are consistent with reality.
+
++ Management objectives
++ Target and limit reference points
++ Estimates of probability from stock assessments 
++ Harvest control rules 
++ Risk and uncertainty
+
+
+## Stock Assessment
+
++ Data
++ Model assumptions
++ Diagnostics
++ Reliablity
++ Stock status wrt reference points
++ Projections
+
+
+# Scientific Advice
+
+## Management objectives
+
++ The original objective of the tRFMOs is to keep stocks at a level that will support MSY.
+
++ It is no longer sufficient to just know where we are, however, we also need to know where we are headed and to assess the impact of uncertainty on our ability to meet management objectives.
+
++ Therefore to help implement the Precautionary Approach the tRFMOs have proposed limit reference points and are begining to simulation test Harvest Control Rules using MSE
+
+## Management objectives
+
++ A need to consider a range of management objectives and the trade-offs between them, e.g. related to
+    * yield
+    * safety 
+    * stability 
+    
+    
+It is important that indicators do not overlap in what they tell us.  
+
+What none of these three tell us is anything about the surroundings, other than height (safety).  Nothing about other traffic proximity, or environmental perturbation ahead or even behind (that might explain in part the present state).  So an indicator that relates the stock to the rest of the environment may be useful.  The three above are only about the stock itself.
+    
+## Stock Assessment
+
+The provision of fisheries management advice requires the assessment of stock status relative to reference points, the prediction of the response of a stock to management, and checking that predictions are consistent with reality.
+
+
+## Historical estimates of stock status
+
+### SS absolute
+
+```{r,echo=FALSE}
+dat=subset(yft,Method=="SS"&Scenario==1&year%in%1970:2014)
+dat=transform(dat,stock=stock*bmsy,harvest=harvest*fmsy)[,c("year","stock","harvest")]
+dat=ddply(melt(dat,id="year"),.(variable,year),with, median(value))
+
+ggplot(dat)+
+  geom_line(aes(year,V1))+
+  facet_grid(variable~.,scale="free")
+```
+
+## Historical estimates of stock status
+
+### SS relative
+```{r,echo=FALSE}
+dat=subset(yft,Method=="SS"&Scenario==1&year%in%1970:2014)
+dat=transform(dat,stock=stock,harvest=harvest)[,c("year","stock","harvest")]
+dat=ddply(melt(dat,id="year"),.(variable,year),with, median(value))
+
+quads=rbind(data.frame(x=c(-Inf,-Inf,Inf,Inf), y=c(-Inf,  1,  1,-Inf), 
+                         fill=as.factor("high")),
+            data.frame(x=c(-Inf,-Inf,Inf,Inf), y=c(   1,Inf,Inf,   1), 
+                         fill=as.factor("low")))
+ggplot(dat)+
+  facet_grid(variable~.,scale="free")+
+  geom_polygon(data=quads,aes(x,y,fill=fill)) +
+  geom_line(aes(year,V1))+
+  scale_fill_manual(values=c("pink","lightgreen"), guide="none") +  
+  theme_bw()+theme(legend.position="none")+
+  ylab(expression(B/B[MSY]))+
+  xlab("Year")
+```
+
+
+## Target and limit reference points
+
+### SS
+```{r,echo=FALSE}
+dat=ddply(subset(yft,Method=="SS"&Scenario==1&year<=2014),.(year),
+          with, data.frame(stock=median(stock),harvest=median(harvest)))
+
+p=kobePhase(dat)+
+  geom_path( aes(stock,harvest),col="brown",size=.75)+
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=2.5,
+             data=subset(dat,year%in%seq(1950,2014,5)))+
+    geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=5.0,
+             data=subset(dat,year==2014))
+p
+```
+
+
+## Estimates of probability from stock assessments 
+```{r,echo=FALSE}
+dat=subset(yft,Method=="SS"&Scenario==1&year%in%2014)
+
+p+
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",data=dat)
+```
+
+## 
+```{r,echo=FALSE}
+dat=subset(yft,year%in%1970:2014)
+dat=transform(dat,stock=stock,harvest=harvest)[,
+                  c("year","Scenario","Method","stock","harvest")]
+dat=ddply(melt(dat,id=c("Scenario","Method","year")),.(variable,year,Method,Scenario),with, 
+               median(value))
+
+ggplot(subset(dat,!is.na(V1)))+
+  geom_polygon(data=quads,aes(x,y,fill=fill)) +
+  geom_line(aes(year,V1,col=factor(Scenario)))+
+  scale_fill_manual(values=c("pink","lightgreen"), guide="none") +
+  facet_grid(variable~Method,scale="free")+
+  theme_bw()+theme(legend.position="bottom")+
+  xlab("Year")+ylab("")+
+  scale_colour_discrete(guide_legend(title="Scenario"))
+```
+
+## Historical estimates of stock status
+
+### SS relative
+```{r,echo=FALSE}
+dat=subset(yft,year%in%1970:2014)
+dat=transform(dat,stock=stock*bmsy,harvest=harvest*fmsy)[,
+                  c("year","Scenario","Method","stock","harvest")]
+dat=ddply(melt(dat,id=c("Scenario","Method","year")),.(variable,year,Method,Scenario),with, 
+               median(value))
+
+ggplot(subset(dat,!is.na(V1)))+
+  geom_polygon(data=quads,aes(x,y,fill=fill)) +
+  geom_line(aes(year,V1,col=factor(Scenario)))+
+  facet_grid(variable~Method,scale="free")+
+  theme_bw()+theme(legend.position="bottom")+
+  xlab("Year")+ylab("")+
+  scale_colour_discrete(guide_legend(title="Scenario"))
+```
+
+## 
+```{r,echo=FALSE}
+dat=ddply(subset(yft,year<=2014),.(year,Scenario,Method),
+          with, data.frame(stock=median(stock),harvest=median(harvest)))
+
+kobePhase(dat)+
+  geom_path( aes(stock,harvest),col="brown",size=.75)+
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0,
+             data=subset(dat,year%in%seq(1950,2014,5)))+
+    geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=2.5,
+             data=subset(dat,year==2014))+
+  facet_grid(Method~Scenario)
+```
+
+## 
+```{r,echo=FALSE}
+dat=subset(yft,year==2014)
+
+kobePhase(dat)+
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0)+
+  facet_grid(Method~Scenario)
+```
+
+## Harvest control rules 
+
+```{r,echo=FALSE}
+dat=subset(yft,year==2014)
+
+kobe:::kobePhaseMar3(transform(dat,run=paste(Method,Scenario))[,c("stock","harvest","run")])
+```
+
+## 
+```{r,echo=FALSE}
+kobe:::kobePhaseMar2(transform(dat,run=paste(Method,Scenario))[,c("stock","harvest","run")])
+```
+
+## Risk and uncertainty
+
+
+# Stock Assessment
+
+## Data
+## Model assumptions
+## Diagnostics
+## Reliablity
+## Stock status wrt reference points
+## Projections
+
+Prediction is often used synonymously \citep{bray2009prediction} with forecast, projection and scenario. To avoid confusion we base our definitions on those of the International Panel on Climate Change  \citep[IPCC][]{field2012managing}. A projection is a potential future evolution of a quantity or set of quantities, a prediction or forecast is the result of an attempt to produce an estimate of the actual evolution of the future, while a scenario is a possible, plausible, internally consistent, but not necessarily probable, development.
