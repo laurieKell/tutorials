@@ -2,7 +2,7 @@
 title: "Kobe Advice Framework"
 author: "Laurence Kell"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: rmarkdown:::html_document
+output: rmarkdown:::pdf_document
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{kobe}
@@ -300,4 +300,4 @@ http://rscloud.iccat.int:3838/swo-med-xsa/
 ## Projections
 http://rscloud.iccat.int:3838/swo-med/
 
-Prediction is often used synonymously \citep{bray2009prediction} with forecast, projection and scenario. To avoid confusion we base our definitions on those of the International Panel on Climate Change  \citep[IPCC][]{field2012managing}. A projection is a potential future evolution of a quantity or set of quantities, a prediction or forecast is the result of an attempt to produce an estimate of the actual evolution of the future, while a scenario is a possible, plausible, internally consistent, but not necessarily probable, development.
+Prediction is often used synonymously citep{bray2009prediction} with forecast, projection and scenario. To avoid confusion we base our definitions on those of the International Panel on Climate Change  citep[IPCC][]{field2012managing}. A projection is a potential future evolution of a quantity or set of quantities, a prediction or forecast is the result of an attempt to produce an estimate of the actual evolution of the future, while a scenario is a possible, plausible, internally consistent, but not necessarily probable, development.
