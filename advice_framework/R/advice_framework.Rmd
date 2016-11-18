@@ -1,14 +1,14 @@
 ---
-title: "Kobe Advice Framework"
-author: "Laurence Kell"
+title: "DG-MARE course on assessment & advice in (tuna) RFMOs"
+author: "Laurence Kell & Niels Hintzen"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: rmarkdown:::pdf_document
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{kobe}
-  \usepackage[utf8]{inputenc}
+  \DeclareUnicodeCharacter{00A0}{ }
   %\VignetteEncoding{UTF-8}
-bibliography: /home/laurie/bib/refs.bib
+#bibliography: /home/laurie/bib/refs.bib
 tags: FLPKG FLR
 license: Creative Commons Attribution-ShareAlike 4.0 International
 ---
@@ -37,7 +37,7 @@ library(ggplot2)
 library(kobe)
 library(reshape2)
 
-load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/yft.RData")
+load("D:/Repository/DGMARETuna/tutorials/advice_framework/data/yft.RData")
 
 trk =transform(subset(yft,year%in%1970:2014),stock=stock,harvest=harvest)[,
                   c("year","Scenario","Method","stock","harvest")]
@@ -59,18 +59,37 @@ quad2=rbind(cbind(variable="stock",ddply(msy,.(Method,Scenario),
 
 | Day 1         |                                                           |
 | --------------|:----------------------------------------------------------|
-| 09:30 – 10:15 | **Presentation:** The Kobe advice framework               |
-| 10:15 – 10:45 | **Presentation:** Assessment, data needs and assumptions  |
+| 09:30 – 10:15 | **Presentation:** The advice framework                    |
+| 10:15 – 10:45 | **Presentation:** Assessment: data needs                  |
 | 10:45 – 11:00 | **Tea Break:**                                            |
 | 11:00 – 12:15 | **Exercise:**                                             |
 | 12:15 – 13:15 | **Lunch:**                                                |
-| 13:15 – 14:30 | **Presentation:** Assessment, data needs and assumptions  |
+| 13:15 – 14:30 | **Presentation:** Assessment: model assumptions           |
 | 14:30 – 15:15 | **Exercise:**                                             |
 | 15:15 – 15:30 | **Tea Break:**                                            |
 | 15:30 – 16:30 | **Presentation:** Stock Status and Reference points       |
 | 16:30 – 17:00 | **Summary of the day:**                                   |
 
-## The Kobe advice framework               
+In this course, we start at the end product: the advice. The advice contains a number topics and forms the foundation of the advice. From the advice sheet we jump back to start of the process, data, then following on with assessment models, how to relate stock status to reference points, how to prepare an outlook for a stock and finally how to design and evaluate management plans.
+
+
+## The advice sheet (LAURIE)
+Advice on many tuna species is provided on an annual basis. The advice sheets follow a standard format and can be vistited here:[Yellowfin tuna advice](https://www.iccat.int/Documents/SCRS/ExecSum/YFT_ENG.pdf)
+
+If we go through the advice sheets, the following topics are discussed
+1. Biology
+2. History of catches
+3. Indices
+4. Stock status
+5. Outlook / predictions
+6. Basis of advice
+
+All these topics are relevant because ...
+
+[comment]: # (Now it is core that we follow the advice sheet and zoom in on each of the topics in what they mean, but we should not go in too much detail yet. I haven't seen an advice sheet myself so couldn't add the order. At this stage, I think we need to show what the core advice is, what the biological considerations are, what the reference points are and how that determines stock status and triggers a certain way of giving advice. In terms of showing kobe-plots, stick to rather simple concepts first, we'll get back to that later on in the course)
+
+
+### The Kobe advice framework               
 
 The provision of fisheries management advice requires the assessment of stock status relative to reference points, the prediction of the response of a stock to management, and checking that predictions are consistent with reality.
 
@@ -169,6 +188,9 @@ ggplot(trk.rel)+
 
 **Figure `r iFig=iFig+1; iFig`.** Estimates relative to reference points
 
+[comment]: # (the figure below is becoming too much for the introduction, my suggestion is to stop here probably. To keep the code clean, let's delete it even if it's not printed to PDF)
+
+
 ```{r}
 dat=ddply(subset(trk,year<=2014),.(Method,Scenario,year),
           with, data.frame(stock=median(stock),harvest=median(harvest)))
@@ -241,51 +263,91 @@ i) provide examples of projections based on these,
 ii) do some hindcasting for validation
 iii) project under a HCR
 
-## Stock Assessment, data needs and assumptions  
+## Stock Assessment: data needs (NIELS)
 
-The provision of fisheries management advice requires the assessment of stock status relative to reference points, the prediction of the response of a stock to management, and checking that predictions are consistent with reality.
+To be able to provide fisheries advice, an estimation of stock size must be carried out. Here we focus on stock assessment models, models which often take fisheries dependent data and fisheries indepedent data to, combinedly, estimate how many fish are in the sea and how many can be caught sustainable.  
 
-+ Data
-+ Model assumptions
-+ Diagnostics
-+ Reliablity
-+ Stock status wrt reference points
-+ Projections
+We'll be discussing:
 
+* The types of data
+    + Landings data
+        + Age data / length data
+    + Discard data / slippage / BMS
+    + Independent monitoring data
+    + Dependent monitoring data
+    + Biological data on maturity, natural mortality, weight
+* Where to get this data from
+    + Sampling of catch at sea or in harbour
+    + Assumptions on maturity, natural mortality, weight
+* Uncertainty in the data
+    + Sampling design & accuracy
+* Example from ICES (NIELS)
+* Example from SPRFMO (NIELS)
+* Example from ICCAT (LAURIE)
 
-Then we can
+### Landings data
+#### Age data / length data
+### Discard data
+### Independent monitoring data
+### Dependent monitoring data (CPUE)
+### Biological data
+### Assumptions on maturity, natural mortality, weight
 
-+ compare the assessment mode
-+ run some simulations using a shiny app where we vary options, i.e. M, steepness, ...
-+ run simulations with HCR options
-+ convert Catch-at-size to Catch-at-age and run a VPA
-
-### Data
-#### Catch per unit effort
-
-**Figure `r iFig=iFig+1; iFig`.** CPUE
-**Figure `r iFig=iFig+1; iFig`.** CPUE correlations
-
-#### Catch at size
-
-**Figure `r iFig=iFig+1; iFig`.** Catch-at-size
-**Figure `r iFig=iFig+1; iFig`.** Catch-at-age
-
-### Assessments
-#### biomass based
-#### Age based
-
+### Example from the ICES world
+### Example from the SPRFMO world
+### Example from the ICCAT world
 
 ### **Exercise:**           
 
-## Assessment, data needs and assumptions  
 
-### **Exercise:**                                             
 
-### Stock Status and Reference points       
+## Assessment: model assumptions (NIELS)  
 
+The basics of an assessment model is to estimate, based on the removals by the fishery, how many fish are still left in the sea. 
+
+* Two essential equations (NIELS)
+    + Baranov catch equations
+    + Survivor equation
+* How do different datasets work together in an assessment model (NIELS)
+* What do assessment models estimate (NIELS)
+    + Fishing mortality
+    + Selectivity
+    + Stock numbers at age
+    + Catchability
+    + Residuals
+    + Uncertainty in the parameters
+* Where do they differ (LAURIE)
+    + Age based assessments
+    + Length based assessments
+    + Bio-based assessments
+    + Data-limted assessments
+    + (LAURIE)
+* Example from the ICCAT world (LAURIE)
+* Example from the SPRFMO world (NIELS)
+
+### Two essential equations
+### How do different datasets work together
+### What do assessment models estimate
+### Where do they differ
 #### biomass based
 #### Age based
+
+### **Exercise:**                                             
+[comment]: #(Lets make a simple table with N, F, Maturity, M, etc and let them calculate SSB, Fbar, total biomass, survivors in the next year)
+
+### Stock Status and Reference points (LAURIE)       
+
+* Types of reference points used (LAURIE)
+    + Fmsy, Bmsy, Bpa, Blim, B0, B40
+* Bringing reference points into a policy context (LAURIE)
+    + Kobe plot
+* How to estimate reference points (NIELS)
+    + SSB - Recruitment
+    + Fmsy, Bmsy, Msy
+    + Assumptions on selectivity & recruitment
+* Difficulties with reference points (NIELS)
+    + Changing biology
+    + Mixed fisheries
 
 \newpage
 # Day 2
@@ -301,26 +363,49 @@ Then we can
 | 14:00 – 16:00 | **Summary of the day**                                |
 
 
-## Projection scenarios                    
+## Projection scenarios (LAURIE) 
+
+* Purpose of projections (LAURIE)
+* Assumptions in projections (LAURIE)
+    + Recruitment 
+    + Productivity
+    + Selectivity
+    + Model assumption
+    + Expected outtake in year before TAC year
+* Aim in projections (NIELS)
+    + Specific TAC
+    + Specific SSB or F
+* Example from ICEs (NIELS)
+* Example from SPRFMO (NIELS)
+* Example from ICCAT (LAURIE)
+
+
 ### **Exercise:**  
 
-## Management Plans                        
+## Management Plans (Let's decide)
+
+* Generic design of a management plan
+* How to evaluate a management plan
+    + Management Plan Evaluation (MSE)
+        + Operating model
+        + Fleet model
+        + Assessment model
+        + Advisory framework
+* Criteria in a management plan
+    + Precaution
+    + MSY
+    + Being on target
+    + Stable yield
+* Assumptions and validity
+    + Recruitment & selectivity
+    + Medium term to long term evaluations
+    + Implementation error
+* Example from ICCAT (LAURIE)
+* Example from SPRFMO (NIELS)
+
 ### **Exercise:**                                             
 
-# Advice Framework
-## Scientific Advice
-
-
-
-# Scientific Advice
-
-    
-
-
-## Risk and uncertainty
-
-
-# Stock Assessment
+[comment]: #(Not sure what this below is doing, but I guess you want to lift this in the doc somewhere
 
 http://rscloud.iccat.int:3838/swo-med-xsa/
 
@@ -333,4 +418,4 @@ http://rscloud.iccat.int:3838/swo-med-xsa/
 ## Projections
 http://rscloud.iccat.int:3838/swo-med/
 
-Prediction is often used synonymously citep{bray2009prediction} with forecast, projection and scenario. To avoid confusion we base our definitions on those of the International Panel on Climate Change  citep[IPCC][]{field2012managing}. A projection is a potential future evolution of a quantity or set of quantities, a prediction or forecast is the result of an attempt to produce an estimate of the actual evolution of the future, while a scenario is a possible, plausible, internally consistent, but not necessarily probable, development.
+Prediction is often used synonymously citep{bray2009prediction} with forecast, projection and scenario. To avoid confusion we base our definitions on those of the International Panel on Climate Change  citep[IPCC][]{field2012managing}. A projection is a potential future evolution of a quantity or set of quantities, a prediction or forecast is the result of an attempt to produce an estimate of the actual evolution of the future, while a scenario is a possible, plausible, internally consistent, but not necessarily probable, development.)
