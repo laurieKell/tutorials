@@ -8,16 +8,14 @@ vignette: >
   %\VignetteIndexEntry{kobe}
   \usepackage[utf8]{inputenc}
   %\VignetteEncoding{UTF-8}
-bibliography: refs.bib
+bibliography: /home/laurie/bib/refs.bib
 tags: FLPKG FLR
 license: Creative Commons Attribution-ShareAlike 4.0 International
 ---
 
-```{r setup, include=FALSE}
+```{r, eval=TRUE, echo=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-```
 
-```{r, echo=FALSE}
 library(knitr)
 
 opts_chunk$set(comment=NA, 
@@ -26,11 +24,14 @@ opts_chunk$set(comment=NA,
                error  =FALSE, 
                echo   =FALSE, 
                eval   =!TRUE,
-               fig.width =6, 
-               fig.height=6)
+               fig.width =4, 
+               fig.height=4)
+
+iFig=0
+iTab=0
 ```
 
-```{r init, echo=FALSE}
+```{r init, eval=TRUE}
 library(plyr)
 library(ggplot2)
 library(kobe)
@@ -67,102 +68,107 @@ quad2=rbind(cbind(variable="stock",ddply(msy,.(Method,Scenario),
 | 14:30 – 15:15 | **Exercise:**                                             |
 | 15:15 – 15:30 | **Tea Break:**                                            |
 | 15:30 – 16:30 | **Presentation:** Stock Status and Reference points       |
-| 16:30 – 17:00 | **Summary of the day:** questions                         |
+| 16:30 – 17:00 | **Summary of the day:**                                   |
 
 ## The Kobe advice framework               
 
-
 The provision of fisheries management advice requires the assessment of stock status relative to reference points, the prediction of the response of a stock to management, and checking that predictions are consistent with reality.
 
-Elements are
+Elements of advice frameworks are
+
 + Management objectives
 + Target and limit reference points
 + Estimates of probability from stock assessments 
 + Harvest control rules 
 + Risk and uncertainty
 
-
 ### Management objectives
 
+The original objective of the tRFMOs is to keep stocks at a level that will support MSY. It is no longer sufficient to just know where we are, however, we also need to know where we are headed and to assess the impact of uncertainty on our ability to meet management objectives. There is increasingly a need to consider a range of management objectives and the trade-offs between them, e.g. related to yield, safety and stability. It is also important that indicators do not overlap in what they tell us. Therefore to help implement the Precautionary Approach the tRFMOs have proposed limit reference points and are begining to simulation test Harvest Control Rules using MSE. 
 
-There is a need to consider a range of management objectives and the trade-offs between them, e.g. related to yield, safety and stability. 
-
-The original objective of the tRFMOs is to keep stocks at a level that will support MSY. It is no longer sufficient to just know where we are, however, we also need to know where we are headed and to assess the impact of uncertainty on our ability to meet management objectives. Therefore to help implement the Precautionary Approach the tRFMOs have proposed limit reference points and are begining to simulation test Harvest Control Rules using MSE. 
-
-It is also important that indicators do not overlap in what they tell us. 
 
 ### Stock Status
 
-The data are for the last Yellowfin assessment where there were 4 methods and 2 scenarios related to choice of CPUEs.
+The data are for the last Yellowfin assessment where there were 4 methods and 2 scenarios related to choice of CPUEs. These will be used to illustrate the advice framework and uncertainty in parameter estimates, model assumptions and data
 
-These will be used to illustrate the advice framework and uncertainty in parameter estimates, model assumptions and data
+#### Stock synthesis and 1 set of CPUE indices
 
-## Historical estimates of stock status
-
-Absolute
-
-```{r}
+```{r, fig.width=6,fig.height=3, eval=TRUE}
 names(msy)[3:4]=c("stock","harvest")
 trk.rel=merge(trk2,melt(msy,id=c("Method","Scenario")),
           by=c("Method","Scenario","variable"))
-trk.rel=transform(trk.rel,value=value*V1)[,-5]
+trk.rel=transform(trk.rel,value=value*V1,
+                  variable=ifelse(variable=="harvest","F/F[MSY]","B/B[MSY]"))[,-5]
 
 ggplot(subset(trk.rel,Method=="SS"&Scenario==1))+
-  geom_line(aes(year,value))+
-  facet_grid(variable~.,scale="free_y")+
-  theme_bw()+theme(legend.position="none")+
+  geom_line(aes(year,value),col="brown",size=1.5)+
+  facet_grid(variable~.,scale="free_y", labeller = label_parsed)+
+  theme_bw(12)+theme(legend.position="none")+
   ylab("")+xlab("Year")
 ```
 
+**Figure `r iFig=iFig+1; iFig`.** Absolute estimates
 
-```{r}
+
+```{r, fig.width=6,fig.height=3, eval=TRUE}
+quad2=transform(quad2,variable=ifelse(variable=="harvest","F/F[MSY]","B/B[MSY]"))
+
 ggplot(subset(trk.rel,Method=="SS"&Scenario==1))+
   geom_polygon(aes(x,y,fill=fill),data=subset(quad2,Method=="SS"&Scenario==1)) +
-  geom_line(aes(year,value))+
+  geom_line(aes(year,value),col="brown",size=1.5)+
   facet_grid(variable~.,scale="free_y")+
   scale_fill_manual(values=c("pink","lightgreen"), guide="none") +  
-  theme_bw()+theme(legend.position="none")+
-  ylab(expression(""))+
-  xlab("Year")
+  facet_grid(variable~.,scale="free_y", labeller = label_parsed)+
+  theme_bw(12)+theme(legend.position="none")+
+  ylab("")+xlab("Year")
 ```
 
-
-
-```{r}
-ggplot(trk.rel)+
-  geom_polygon(aes(x,y,fill=fill),data=quad2) +
-  geom_line(aes(year,value,col=factor(Scenario)))+
-  facet_grid(variable~Method,scale="free_y")+
-  scale_fill_manual(values=c("pink","lightgreen"), guide="none") +  
-  theme_bw()+theme(legend.position="none")+
-  ylab(expression(""))+
-  xlab("Year")
-```
+**Figure `r iFig=iFig+1; iFig`.** Estimates relative to reference points
 
 ## Kobe Phase Plot
 
-```{r}
+```{r, eval=TRUE}
 dat=ddply(subset(trk,Method=="SS"&Scenario==1&year<=2014),.(year),
           with, data.frame(stock=median(stock),harvest=median(harvest)))
 
 p=kobePhase(dat)+
   geom_path( aes(stock,harvest),col="brown",size=.75)+
-  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=2.5,
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0,
              data=subset(dat,year%in%seq(1950,2014,5)))+
-    geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=5.0,
+    geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=2.5,
              data=subset(dat,year==2014))
 p
 ```
 
 
+**Figure `r iFig=iFig+1; iFig`.** Phase plot
+
 Estimates of probability from stock assessments 
-```{r}
+
+```{r, eval=TRUE}
 p+
-  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=2.5,
              data=subset(yft,Method=="SS"&Scenario==1&year%in%2014))
 ```
 
-## 
+
+**Figure `r iFig=iFig+1; iFig`.** Uncertainty in current estimates
+
+#### Structual uncertainty
+
+```{r, fig.height=3,fig.width=7, eval=TRUE}
+ggplot(trk.rel)+
+  geom_polygon(aes(x,y,fill=fill),data=quad2) +
+  geom_line(aes(year,value,col=factor(Scenario)))+
+  facet_grid(variable~Method,scale="free_y", labeller=label_parsed)+
+  scale_fill_manual(values=c("pink","lightgreen"), guide="none") +  
+  theme_bw()+theme(legend.position="none")+
+  ylab(expression(""))+
+  xlab("Year")
+```
+
+**Figure `r iFig=iFig+1; iFig`.** Estimates relative to reference points
+
 ```{r}
 dat=ddply(subset(trk,year<=2014),.(Method,Scenario,year),
           with, data.frame(stock=median(stock),harvest=median(harvest)))
@@ -173,29 +179,39 @@ kobePhase(dat)+
   facet_grid(Method~Scenario)
 ```
 
-## Historical estimates of stock status
+**Figure `r iFig=iFig+1; iFig`.** Phase plot
 
-### SS relative
+
 ```{r}
 kobePhase(subset(yft,year%in%2014))+
   geom_point(aes(stock,harvest),shape=21,fill="red",col="brown")+
   facet_grid(Method~Scenario)
 ```
 
-## 
+**Figure `r iFig=iFig+1; iFig`.** Phase plot
 
-## 
+ 
 ```{r}
 kobe:::kobePhaseMar3(transform(subset(yft,year%in%2014),run=paste(Method,Scenario)
                                )[,c("stock","harvest","run")])
 ```
+
+**Figure `r iFig=iFig+1; iFig`.** Phase plot
+
 
 ```{r}
 kobe:::kobePhaseMar2(transform(subset(yft,year%in%2014),run=paste(Method,Scenario)
                                )[,c("stock","harvest","run")])
 ```
 
-## Harvest control rules 
+**Figure `r iFig=iFig+1; iFig`.** Phase plot
+
+## Projections 
+
+**Figure `r iFig=iFig+1; iFig`.** Strategey matrix
+
+**Figure `r iFig=iFig+1; iFig`.** Decision table
+
 
 ```{r}
 hcr= data.frame(stock  =c(0.0 ,0.1 , 0.6,2.0), 
@@ -244,6 +260,21 @@ Then we can
 + run simulations with HCR options
 + convert Catch-at-size to Catch-at-age and run a VPA
 
+### Data
+#### Catch per unit effort
+
+**Figure `r iFig=iFig+1; iFig`.** CPUE
+**Figure `r iFig=iFig+1; iFig`.** CPUE correlations
+
+#### Catch at size
+
+**Figure `r iFig=iFig+1; iFig`.** Catch-at-size
+**Figure `r iFig=iFig+1; iFig`.** Catch-at-age
+
+### Assessments
+#### biomass based
+#### Age based
+
 
 ### **Exercise:**           
 
@@ -251,7 +282,10 @@ Then we can
 
 ### **Exercise:**                                             
 
-## Stock Status and Reference points       
+### Stock Status and Reference points       
+
+#### biomass based
+#### Age based
 
 \newpage
 # Day 2
@@ -264,7 +298,7 @@ Then we can
 | 11:00 – 12:15 | **Presentation:** Management Plans                    |
 | 12:15 – 13:15 | **Lunch:**                                            |
 | 13:15 – 14:00 | **Exercise:**                                         |
-| 14:00 – 16:00 | **Summary of the day** questions                      |
+| 14:00 – 16:00 | **Summary of the day**                                |
 
 
 ## Projection scenarios                    
@@ -275,7 +309,6 @@ Then we can
 
 # Advice Framework
 ## Scientific Advice
-
 
 
 
