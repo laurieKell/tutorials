@@ -38,6 +38,8 @@ library(kobe)
 library(reshape2)
 
 load("D:/Repository/DGMARETuna/tutorials/advice_framework/data/yft.RData")
+load("D:/Repository/DGMARETuna/tutorials/advice_framework/data/jjm.RData")
+
 
 trk =transform(subset(yft,year%in%1970:2014),stock=stock,harvest=harvest)[,
                   c("year","Scenario","Method","stock","harvest")]
@@ -270,9 +272,8 @@ To be able to provide fisheries advice, an estimation of stock size must be carr
 We'll be discussing:
 
 * The types of data
-    + Landings data
+    + Catch data
         + Age data / length data
-    + Discard data / slippage / BMS
     + Independent monitoring data
     + Dependent monitoring data
     + Biological data on maturity, natural mortality, weight
@@ -286,12 +287,84 @@ We'll be discussing:
 * Example from ICCAT (LAURIE)
 
 ### Landings data
+
+Landings data comprises all the fisheries catch that is brought into harbour / put on-land. Often it is only the marktable fish, but under the new landing obligation, it is also the smaller fish with limited value. In the end, the fish goes over the fish market, is kept in storage and sold via retailers or is sold directly to e.g. restaurant owners. 
+
+![](http://www.nielshintzen.nl/Foto/Hawaii%20Oktober%202014/slides/NTH_8134.jpg)
+**Figure `r iFig=iFig+1; iFig`.** Tuna at a fish market in Hawaii
+
+Landings data is reported by the skipper in logbooks. These logbooks also contain information on the location of the catch, the catch position and details on the vessel such as horsepower of th engine and gear used to catch the fish. The information in these logbooks is reported to the autorities who collate all this information and send it on to fisheries scientists that prepare the data for stock assessment activities. The logbooks and declarations in harbour are also used to keep track of quota uptake, and the same autorities report back to skippers on how much quota is left. 
+
+For stock assessment purposes, the landings data play a very important role. Often, it is the only reliable source of information. Getting the landings data correct is therefore crucial. If the landings data is of bad quality, one can usually assume that the stock assessment does not represent the real stock status very well. That has all to do with the way stock assessment models work, in a sense, they try to reconstruct the catch time-series assuming certain biological processes take place. 
+
+```{r, fig.height=3,fig.width=7, eval=TRUE}
+  dat <- rbind(data.frame(fleet=1,year=1970:2016,catch=jjm$output$Stock_1$Obs_catch_1),
+               data.frame(fleet=2,year=1970:2016,catch=jjm$output$Stock_1$Obs_catch_2),  
+               data.frame(fleet=3,year=1970:2016,catch=jjm$output$Stock_1$Obs_catch_3),  
+               data.frame(fleet=4,year=1970:2016,catch=jjm$output$Stock_1$Obs_catch_4)) 
+
+cols <- rep(c("black","red","green","blue"),each=47)
+
+ggplot(data=dat,aes(x=year,y=catch,group=fleet))+
+  geom_line(aes(colour=cols))+
+  theme_bw()+theme(legend.position="none")+
+  ylab(expression("Catch by fleet (Tonnes)"))+
+  xlab("Year")
+```
+**Figure `r iFig=iFig+1; iFig`.** Fish catch from 1970 - 2016 for 4 different fleets.
+
 #### Age data / length data
-### Discard data
+
+In addition to the landings data, age reading often takes place to proportion the total catch in age bins. This is crucial information if we want to track the same cohort of fish through the years and get an understanding of how they die of natural and fishing causes.
+
+![](D:/Repository/DGMARETuna/tutorials/advice_framework/figures/figures09.png)
+**Figure `r iFig=iFig+1; iFig`.** Proportional catch at age, coloured by cohort
+
+In a number of fisheries however, ageing is too expensive or won't work because age reading relies on counting year-rings. In areas without any specific season (around the equator) year rings won't show up. In those cases, only length data are being used and, based on growth estimates, converted back to age.
+
+![](D:/Repository/DGMARETuna/tutorials/advice_framework/figures/annuli-2-eng.jpg)
+**Figure `r iFig=iFig+1; iFig`.** Otolith showing age-rings
+
 ### Independent monitoring data
+
+A fisheries independent dataset is one collected by researchers in the field, often following a fixed design to get a representative view of the total stock biomass, recruitment or eggs produces. Although these series are relatively common in Europe, in Tuna and other RFMO's they are scarce. Independent monitoring data is expensive to collect and when a stock is widely distributed, the efforts needed to cover the entire stock are enourmous. They are however very useful for assessment purposes, which will be explain in more detail later on.
+
+![](D:/Repository/DGMARETuna/tutorials/advice_framework/figures/HERAS.jpg)
+**Figure `r iFig=iFig+1; iFig`.** Fisheries independent acoustic survey results versus the estimated stock size.
+
 ### Dependent monitoring data (CPUE)
+Much more common in Tuna RFMOs is the use of Catch-Per-Unit-Effort data, because these data come straight from the fishing fleet. There is an assumption that whenever a fishing vessel catches more fish per unit of time, there is more fish in the sea. Although the CPUE data itself does not say how much fish there is, the change from year to year can be used as an indicator of changing biomass of fish all together. 
+
+```{r, fig.height=3,fig.width=7, eval=TRUE}
+dat <- rbind(data.frame(survey="Chinese_CPUE",year=jjm$output$Stock_1$Obs_Survey_6[,1],data=jjm$output$Stock_1$Obs_Survey_6[,2]/mean(jjm$output$Stock_1$Obs_Survey_6[,2])),
+             data.frame(survey="EU_CPUE",year=jjm$output$Stock_1$Obs_Survey_7[,1],data=jjm$output$Stock_1$Obs_Survey_7[,2]/mean(jjm$output$Stock_1$Obs_Survey_7[,2])),
+             data.frame(survey="Russian_CPUE",year=jjm$output$Stock_1$Obs_Survey_8[,1],data=jjm$output$Stock_1$Obs_Survey_8[,2]/mean(jjm$output$Stock_1$Obs_Survey_8[,2])),
+             data.frame(survey="Chilean_CPUE",year=jjm$output$Stock_1$Obs_Survey_3[,1],data=jjm$output$Stock_1$Obs_Survey_3[,2]/mean(jjm$output$Stock_1$Obs_Survey_3[,2])))
+             #data.frame(survey=5,year=jjm$output$Stock_1$Obs_Survey_5[,1],data=jjm$output$Stock_1$Obs_Survey_5[,2]/mean(jjm$output$Stock_1$Obs_Survey_5[,2])),
+             #data.frame(survey=6,year=jjm$output$Stock_1$Obs_Survey_6[,1],data=jjm$output$Stock_1$Obs_Survey_6[,2]/mean(jjm$output$Stock_1$Obs_Survey_6[,2])),
+             #data.frame(survey=7,year=jjm$output$Stock_1$Obs_Survey_7[,1],data=jjm$output$Stock_1$Obs_Survey_7[,2]/mean(jjm$output$Stock_1$Obs_Survey_7[,2])),
+             #data.frame(survey=8,year=jjm$output$Stock_1$Obs_Survey_8[,1],data=jjm$output$Stock_1$Obs_Survey_8[,2]/mean(jjm$output$Stock_1$Obs_Survey_8[,2])),
+             #data.frame(survey=9,year=jjm$output$Stock_1$Obs_Survey_9[,1],data=jjm$output$Stock_1$Obs_Survey_9[,2]/mean(jjm$output$Stock_1$Obs_Survey_9[,2])))
+
+
+ggplot(data=dat,aes(x=year,y=data,group=survey))+
+  geom_point()+geom_line()+
+  facet_grid(.~survey)+
+  ylab(expression("Index by fleet"))+
+  xlab("Year")     
+
+```
+
+
 ### Biological data
 ### Assumptions on maturity, natural mortality, weight
+
+![](D:/Repository/DGMARETuna/tutorials/advice_framework/figures/figures12.png)
+**Figure `r iFig=iFig+1; iFig`.** Estimated growth of a fish over age.
+
+![](D:/Repository/DGMARETuna/tutorials/advice_framework/figures/figures13.png)
+**Figure `r iFig=iFig+1; iFig`.** Estimated maturity over age.
+
 
 ### Example from the ICES world
 ### Example from the SPRFMO world
