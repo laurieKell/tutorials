@@ -454,19 +454,20 @@ The basics of an assessment model is to estimate, based on the removals by the f
     + Survivor equation
 * How do different datasets work together in an assessment model (NIELS)
 * What do assessment models estimate (NIELS)
+  <span style="color:red"> parameters!, which parameters depends on the structure of the model and the data used. What of the quantities below are actually estimated in ASPM, VPA; SS, MFCL, which are derived, and which are nuisance parameters.</span>
     + Fishing mortality
     + Selectivity
     + Stock numbers at age
     + Catchability
-    + Residuals
-    + Uncertainty in the parameters
+    + Residuals <span style="color:red"> what is meant here, goodness of fit statistics, or parameters such as rec or effort deviates from integrated models</span>
+    + Uncertainty in the parameters <span style="color:red"> what is meant, value uncertainty, estimation error, If the later how is this derived, bootstrap, MCMC, hessioan, .....</span>
 * Where do they differ (LAURIE)
     + Age based assessments
     + Length based assessments
     + Bio-based assessments
-    + Data-limted assessments
+    + Data-limted assessments <span style="color:red"> ALl tuna assessments are data limited compared to ICES</span>
     + (LAURIE)
-* Example from the ICCAT world (LAURIE)
+* Example from the tRFMO world (LAURIE)
 * Example from the SPRFMO world (NIELS)
 
 ### Two essential equations
@@ -486,9 +487,10 @@ The basics of an assessment model is to estimate, based on the removals by the f
     <span style="color:red"> we dont use BPA; BLIM, B40, it would be better to talk about targets and limits</span>
 
 * Bringing reference points into a policy context (LAURIE)
-    + Kobe plot
+    + Kobe plot 
 
 * How to estimate reference points (NIELS)
+<span style="color:red"> You need to define the types of reference points, i.e recruitment, growth, target, econmic overfishing, then how to derive them</span>
     + SSB - Recruitment
     + Fmsy, Bmsy, Msy
     + Assumptions on selectivity & recruitment
@@ -496,14 +498,16 @@ The basics of an assessment model is to estimate, based on the removals by the f
 * Difficulties with reference points (NIELS)
     + Changing biology
     + Mixed fisheries
-    +<span style="color:red"> Non-stationarity</span>
+    + <span style="color:red"> Non-stationarity</span>
+    
+<span style="color:red"> We havent even got to day 2 yet</span>    
 
 \newpage
 # Day 2
 
 | Day 2         |                                                       |
 | --------------|:------------------------------------------------------|
-| 09:00 – 10:15 | **Presentation:** Projection scenario                 |
+| 09:30 – 10:15 | **Presentation:** Projection scenario                 |
 | 10:15 – 10:45 | **Exercise:**                                         |
 | 10:45 – 11:00 | **Tea Break:**                                        |
 | 11:00 – 12:15 | **Presentation:** Management Plans                    |
