@@ -25,7 +25,8 @@ opts_chunk$set(comment=NA,
                echo   =FALSE, 
                eval   =!TRUE,
                fig.width =4, 
-               fig.height=4)
+               fig.height=4,
+               fig.path  ="../tex/kobe-")
 
 iFig=0
 iTab=0
@@ -108,7 +109,7 @@ In 2016 not only the data but the stock assessment models and scenarios changed.
 
 The four methods are based on different assumptions about the dynamics
 
-```{r, fig.width=6,fig.height=3, eval=TRUE}
+```{r trend, fig.width=6,fig.height=3, eval=TRUE}
 names(msy)[3:4]=c("stock","harvest")
 trk.rel=merge(trk2,melt(msy,id=c("Method","Scenario")),
           by=c("Method","Scenario","variable"))
@@ -127,7 +128,7 @@ ggplot(subset(trk.rel,variable=="B/B[MSY]"))+
 
 **Figure `r iFig=iFig+1; iFig`.** Estimates of stock relative to $B_{MSY}$
 
-```{r, fig.height=3,fig.width=7, eval=TRUE}
+```{r trend2, fig.height=3,fig.width=7, eval=TRUE}
 dat=ddply(trk,.(Method,Scenario,year),with,data.frame(stock=median(stock),harvest=median(harvest)))
 dat=transform(melt(dat,id=c("Method","Scenario","year")),variable=ifelse(variable=="harvest","F/F[MSY]","B/B[MSY]"))
 
@@ -149,7 +150,7 @@ Two main visualisation tools are used as part of the Kobe Framework to present s
 
 ### Phase Plots
 
-```{r, eval=TRUE}
+```{r kpp1, eval=TRUE}
 dat=ddply(subset(trk,Method=="SS"&Scenario==1&year<=2014),.(year),
           with, data.frame(stock=median(stock),harvest=median(harvest)))
 
@@ -168,7 +169,7 @@ kobePhase(dat)+
 **Figure `r iFig=iFig+1; iFig`.** Uncertainty in current estimates
 
 
-```{r, eval=TRUE}
+```{r kpp2, eval=TRUE}
 dat=ddply(subset(trk,year<=2014),.(Method,Scenario,year),
           with, data.frame(stock=median(stock),harvest=median(harvest)))
 
@@ -184,7 +185,7 @@ kobePhase(dat,xlim=c(0,2.5))+
 **Figure `r iFig=iFig+1; iFig`.** Phase plots
 
 
-```{r, eval=TRUE}
+```{r kpp3, eval=TRUE}
 kobe:::kobePhaseMar(transform(subset(yft,year%in%2014),run=paste(Method,Scenario)
                                )[,c("stock","harvest","run")])
 ```
