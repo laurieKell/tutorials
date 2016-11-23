@@ -32,6 +32,7 @@ The course covers current practice in stock assessment and provision of advice. 
 ## Learning goals
 
 To 
+
 + Understand the basic ideas behind the models used to provide advice.
 + Identify the relative advantages and limitations of alternative stock assessment models.
 + Perceive the difficulties in parameter estimation common to all fisheries models and the effect this uncertainty has on the robustness of advice.

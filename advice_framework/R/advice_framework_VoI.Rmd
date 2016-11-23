@@ -1,0 +1,82 @@
+---
+title: "Atlantic Wide Tropical Tuna Tagging Programme"
+author: "Laurence Kell"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: rmarkdown:::html_document
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{kobe}
+  \DeclareUnicodeCharacter{00A0}{ }
+  %\VignetteEncoding{UTF-8}
+bibliography: refs.bib
+tags: FLPKG FLR
+license: Creative Commons Attribution-ShareAlike 4.0 International
+---
+
+```{r, eval=TRUE, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(knitr)
+
+opts_chunk$set(comment=NA, 
+               warning=FALSE, 
+               message=FALSE, 
+               error  =FALSE, 
+               echo   =FALSE, 
+               fig.width =4, 
+               fig.height=4,
+               fig.path  ="../tex/hcr-")
+
+iFig=0
+iTab=0
+```
+
+```{r init, eval=TRUE}
+library(ggplotFL)
+library(FLCore)
+library(FLBRP)
+
+yft=FLStocks("1"=readVPA2Box("/home/laurie/Desktop/kobe/inputs/yft/2016/vpa/cluster1/yft2016.ctl"),
+             "2"=readVPA2Box("/home/laurie/Desktop/kobe/inputs/yft/2016/vpa/cluster2/yft2016.ctl"))
+plot(yft)
+
+sr=FLSRs(llply(yft,as.FLSR,model="bevholt"))
+sr=FLSRs(llply(sr, function(x) fmle(x,control=list(silent=TRUE))))
+eql=FLBRPs(llply(yft,function(x) FLBRP(setPlusGroup(x,40)))
+
+```
+
+# Objectives
+
+To contribute to food security and economic growth of the Atlantic coastal states by ensuring sustainable management of tropical tuna resources in the Atlantic Ocean.
+
+To provide the best science available for the adoption of Conservation and Management Measures i.e.
+    + TACs, Reference Points and Harvest Control Rules for main tropical tuna species,
+    + Spatial management measures such as time-are closures
+    + FAD moratorium and/or management plans,
+    + Development of indicators for neritic tunas
+
+Although fisheries statistics are available for most fleets operating in the Atlantic, they do not provide all the information needed to conduct stock assessments
+
+* Important biological parameters, such as growth or natural mortality are missing or are largely unknown.
+* As a result, the uncertainty in the stock assessments and the associated risks are high.
+
+A specific objective of the AOTTP is therefore to provide evidence based scientific advice to reduce
+risks to the tropical tuna fisheries. This will be achieved through improving estimates of key parameters for stock assessments of growth, natural mortality, movement and stock structure.
+
+## Specific Indicator
+
+Reduction of the uncertainty surrounding the assessment of MSYs
+
+```{r kpp1}
+```
+
+
+# Excercise
+
+Based on shiny apps
+
+## 
+
+
+# References

@@ -1,3 +1,5 @@
+Should we also include something about simulation testing and MSE? After all I keep hearing that MSE will make all our lives easier and assessments will become a thing of the past.
+Laurie
 ---
 title: "Kobe Advice Framework of the tuna RFMOs"
 author: "Laurence Kell"
@@ -186,7 +188,7 @@ kobePhase(dat,xlim=c(0,2.5))+
 
 
 ```{r kpp3, eval=TRUE}
-kobe:::kobePhaseMar(transform(subset(yft,year%in%2014),run=paste(Method,Scenario)
+kobe:::kobePhaseMar3(transform(subset(yft,year%in%2014),run=paste(Method,Scenario)
                                )[,c("stock","harvest","run")])
 ```
 
