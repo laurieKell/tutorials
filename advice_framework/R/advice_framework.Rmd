@@ -153,6 +153,20 @@ ggplot(trk.rel)+
 
 **Figure `r iFig=iFig+1; iFig`.** Estimates relative to reference points
 
+```{r, fig.height=3,fig.width=7, eval=TRUE}
+dat=ddply(trk,.(Method,Scenario,year),with,data.frame(stock=median(stock),harvest=median(harvest)))
+ggplot(melt(dat,id=c("Method","Scenario","year")))+
+  geom_polygon(aes(x,y,fill=fill),data=quads) +
+  geom_line(aes(year,value,col=factor(Scenario)))+
+  facet_grid(variable~Method,scale="free_y", space="free_y",labeller=label_parsed)+
+  scale_fill_manual(values=c("pink","lightgreen"), guide="none") +  
+  theme_bw()+theme(legend.position="none")+
+  ylab(expression(""))+
+  xlab("Year")
+```
+
+**Figure `r iFig=iFig+1; iFig`.** Estimates relative to reference points
+
 (the figure below is becoming too much for the introduction, my suggestion is to stop here probably. To keep the code clean, let's delete it even if it's not printed to PDF)
 <span style="color:red">I disagree, we need to show how advice is formulated, the requirements, the uncertainty and risks.</span>
 

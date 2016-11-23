@@ -1,0 +1,263 @@
+---
+title: "Kobe Advice Framework of the tuna RFMOs"
+author: "Laurence Kell"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: rmarkdown:::pdf_document
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{kobe}
+  \DeclareUnicodeCharacter{00A0}{ }
+  %\VignetteEncoding{UTF-8}
+bibliography: refs.bib
+tags: FLPKG FLR
+license: Creative Commons Attribution-ShareAlike 4.0 International
+---
+
+```{r, eval=TRUE, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(knitr)
+
+opts_chunk$set(comment=NA, 
+               warning=FALSE, 
+               message=FALSE, 
+               error  =FALSE, 
+               echo   =FALSE, 
+               eval   =!TRUE,
+               cache  =TRUE,
+               fig.width =4, 
+               fig.height=4)
+
+iFig=0
+iTab=0
+```
+
+```{r init, eval=TRUE}
+library(plyr)
+library(ggplot2)
+library(kobe)
+library(reshape2)
+
+dirMy="D:/Repository/DGMARETuna/tutorials/advice_framework"
+dirMy="/home/laurie/Desktop/flr/tutorials/advice_framework"
+dirTex=file.path(dirMy,"tex")
+dirDat=file.path(dirMy,"data")
+
+load(file.path(dirDat,"yft.RData"))
+load(file.path(dirDat,"prj.RData"))
+
+trk =transform(subset(yft,year%in%1970:2014),stock=stock,harvest=harvest)[,
+                  c("year","Scenario","Method","stock","harvest")]
+trk2=ddply(melt(trk,id=c("Scenario","Method","year")),.(variable,year,Method,Scenario),with, 
+               median(value))
+msy  =ddply(yft,.(Method,Scenario), with, c("bmsy"=bmsy[!is.na(bmsy)][1],"fmsy"=fmsy[!is.na(fmsy)][1]))
+
+quads=rbind(data.frame(x=c(-Inf,-Inf,Inf,Inf), y=c(-Inf,  1,  1,-Inf), 
+                         fill=as.factor("high")),
+            data.frame(x=c(-Inf,-Inf,Inf,Inf), y=c(   1,Inf,Inf,   1), 
+                         fill=as.factor("low")))
+quad2=rbind(cbind(variable="stock",ddply(msy,.(Method,Scenario), 
+                        transform, y=quads$y*bmsy,x=quads$x,fill=quads$fill)),
+            cbind(variable="harvest",ddply(msy,.(Method,Scenario), 
+                        transform, y=quads$y*fmsy,x=quads$x,fill=quads$fill)))[,-(4:5)]
+
+quad2=transform(quad2,variable=ifelse(variable=="harvest","F/F[MSY]","B/B[MSY]"))
+
+hcr= data.frame(stock  =c(0.0 ,0.1 , 0.6,7.5), 
+                harvest=c(0.01,0.01, 0.7,0.7))
+```
+
+# Introduction
+
+The provision of fisheries management advice requires the assessment of stock status relative to reference points, the prediction of the response of a stock to management, and checking that predictions are consistent with reality. 
+
+Following the adoption of the Precautionary Approach to fisheries management @garcia1996precautionary an important principle of when providing advice is that the level of precaution should increase as uncertainty increases. This requires a consideration of risk, where risk is an uncertainty that matters and what matters are management objectives. There are two main ways to reduce risk when managing fish stocks, either by obtaining better information or implementing better management.
+
+# The Kobe Advice Framework               
+
+The Tuna Regional Fisheries Management Organisations (tRFMOs) use a common advice framework known as the **Kobe Framework**. 
+
+The original objective of the tuna Regional Fisheries Management Organisations (tRFMOs) was to keep stocks at a level that will support MSY. Under the precautionary approach, however, it is no longer sufficient to just know where we are, we also need to consider the impact of uncertainty on our ability to achieve management objectives. This requires management objectives related to safety and stability as well as yield and to consider the trade-offs between them. Ideally indicators used to formulate advice should also not overlap in what they tell us. 
+
+To help implement the Precautionary Approach, and to meet multiple conflicting objectives, the tRFMOs are begining to simulation Harvest Control Rules (HCRs) using Management Strategy Evaluation (MSE). Where a HCR is a set of well-defined rules used for determining a management action in the form of a TAC or allowable fishing effort given input from an estimator or directly from data. This has meant a change in the way advice is developed and management implemented @kell2016quantification.
+
+## Atlantic Yellowfin Example         
+
+http://iccat.int/com2016/
+
+How often advice is updated depends upon the dynamics of a stock and the management framework. For long lived species such as tuna where management regulations are agreed for a number of years, stock assessments are not conducted each year for every stock. For example Atlantic yellowfin was reassessed in 2016 following the last assessment in 2011. 
+
+In 2016 not only the data but the stock assessment models and scenarios changed. In 2011 two assessment methods were used, Virtual Population Analysis (VPA) and a biomass dynamic model, while in 2016 an Age Structured Production Model (ASPM) and an Integrated Statistical Model (Stock Synthesis) were also used. These assessment models span a range of complexity and data requirements, and the parameters that   are estimated and/or fixed 
+
+### Assessment Models and data requirements
+|                    | Biomass   | ASPM      | VPA       | SS        | 
+| -------------------|:---------:|:---------:|:---------:|:---------:|  
+| Catch Biomass      |     x     |    x      |           |    x      | 
+| Effort             |     x     |           |           |    x      |    
+| Relative abundance |           |           |    x      |           |  
+| CPUE               |     x     |           |    x      |    x      |  
+| Catch-at-size      |           |     x     |           |           |  
+| Catch-at-age       |           |           |    x      |           |  
+| Growth             |           |     x     |           |    x      |  
+| Fecundity          |           |           |           |    x      |  
+| Natural Mortality  |           |     x     |    x      |    x      |  
+| Migration          |           |           |           |           |  
+| Stock Structure    |           |           |           |           |  
+|                    |           |           |           |           |  
+
+## Historical Trends
+
+The four methods are based on different assumptions about the dynamics
+
+```{r, fig.width=6,fig.height=3, eval=TRUE}
+names(msy)[3:4]=c("stock","harvest")
+trk.rel=merge(trk2,melt(msy,id=c("Method","Scenario")),
+          by=c("Method","Scenario","variable"))
+trk.rel=transform(trk.rel,value=value*V1,
+                  variable=ifelse(variable=="harvest","F/F[MSY]","B/B[MSY]"))[,-5]
+
+ggplot(subset(trk.rel,variable=="B/B[MSY]"))+
+  geom_polygon(aes(x,y,fill=fill),data=subset(quad2,variable=="B/B[MSY]")) +
+  geom_line(aes(year,value))+
+  facet_grid(Scenario~Method,scale="free_y", labeller=label_parsed)+
+  scale_fill_manual(values=c("pink","lightgreen"), guide="none") +  
+  theme_bw()+theme(legend.position="none")+
+  ylab(expression(""))+
+  xlab("Year")
+```
+
+**Figure `r iFig=iFig+1; iFig`.** Estimates of stock relative to $B_{MSY}$
+
+```{r, fig.height=3,fig.width=7, eval=TRUE}
+dat=ddply(trk,.(Method,Scenario,year),with,data.frame(stock=median(stock),harvest=median(harvest)))
+dat=transform(melt(dat,id=c("Method","Scenario","year")),variable=ifelse(variable=="harvest","F/F[MSY]","B/B[MSY]"))
+
+ggplot(dat)+
+  geom_polygon(aes(x,y,fill=fill),data=quads) +
+  geom_line(aes(year,value,col=factor(Scenario)))+
+  facet_grid(variable~Method,scale="free_y",labeller=label_parsed)+
+  scale_fill_manual(values=c("pink","lightgreen"), guide="none") +  
+  theme_bw()+theme(legend.position="none")+
+  ylab(expression(""))+
+  xlab("Year")
+```
+
+**Figure `r iFig=iFig+1; iFig`.** Estimates relative to reference points
+
+## Advice Plots
+
+Two main visualisation tools are used as part of the Kobe Framework to present stock assessment advice, namely the Kobe II phase plot (K2PP) and the Kobe II strategy matrix (K2SM). The K2PP presents stock status against fishing mortality relative to Target Reference Points as a two-dimensional phase plot. The K2SM lays out the probability of meeting management objectives under different options, including if necessary ending overfishing or rebuilding overfished stocks. Presenting advice in the K2SM format is intended to facilitate the application of the PA by providing Commissions with a basis to evaluate and adopt management options at various levels of risk (Anonymous, 2009). This enables Commissioners to make management recommendations while taking some sources of uncertainty into account. As an exception the CCSBT does not use the K2SM, since they prefer to consider other performance measures (related to catch levels and catch variability) as well as stock status.
+
+### Phase Plots
+
+```{r, eval=TRUE}
+dat=ddply(subset(trk,Method=="SS"&Scenario==1&year<=2014),.(year),
+          with, data.frame(stock=median(stock),harvest=median(harvest)))
+
+kobePhase(dat)+
+ geom_point(aes(stock,harvest),shape=21,fill="pink",col="brown",size=5.0,
+             data=subset(dat,year==2014))+
+ geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.25,alpha=.5,
+             data=subset(yft,Method=="SS"&Scenario==1&year%in%2014))+
+ geom_path( aes(stock,harvest),col="brown",size=.75)+
+ geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.5,
+             data=subset(dat,year%in%seq(1950,2014,5)))+
+ geom_point(aes(stock,harvest),shape=21,fill="pink",col="brown",size=5.0,
+             data=subset(dat,year%in%2014))
+```
+
+**Figure `r iFig=iFig+1; iFig`.** Uncertainty in current estimates
+
+
+```{r, eval=TRUE}
+dat=ddply(subset(trk,year<=2014),.(Method,Scenario,year),
+          with, data.frame(stock=median(stock),harvest=median(harvest)))
+
+kobePhase(dat,xlim=c(0,2.5))+
+  geom_path( aes(stock,harvest),col="brown",size=.75)+
+  facet_grid(Method~Scenario)+
+  geom_point(aes(stock,harvest),shape=21,fill="red",col="brown",size=1.0,
+             data=subset(trk,year==2014))+
+  geom_point(aes(stock,harvest),shape=21,fill="pink",col="brown",size=2.5,
+             data=subset(dat,year==2014))
+```
+
+**Figure `r iFig=iFig+1; iFig`.** Phase plots
+
+
+```{r, eval=TRUE}
+kobe:::kobePhaseMar(transform(subset(yft,year%in%2014),run=paste(Method,Scenario)
+                               )[,c("stock","harvest","run")])
+```
+
+**Figure `r iFig=iFig+1; iFig`.** Phase plot
+
+### Strategy Matrix  
+
+Prediction is often used synonymously @bray2009prediction with forecast, projection and scenario. To avoid confusion we base our definitions on those of the International Panel on Climate Change @field2012managing, where a projection is a potential future evolution of a quantity or set of quantities, a prediction or forecast is the result of an attempt to produce an estimate of the actual evolution of the future, while a scenario is a possible, plausible, internally consistent, but not necessarily probable, development.
+
+
+**Figure `r iFig=iFig+1; iFig`.** Strategey matrix
+
+#### Decision table
+
+IATTC prefer to use a decision table, this differs from the K2SM in that it provide a a range of performance measures for a set of alternative management actions under different states of nature.
+
+```{r, eval=TRUE, echo=FALSE}
+rcv=subset(ddply(subset(prj,year>2016),.(year,Scenario,Method,tac),with, data.frame(pct=quantile(stock,.2))),pct>1)
+rcv=rcv[!duplicated(rcv[,c("Scenario","Method")]),]
+rcv=rcv[,c(2,3,1,4)]
+rcv=rcv[do.call(order,rcv[,c(2,1)]),]
+dimnames(rcv)[[1]]=1:7
+rcv
+
+```
+
+```{r, eval=TRUE, echo=FALSE}
+eof=subset(prj,year==2018)
+eof=subset(ddply(eof,.(year,Scenario,Method,tac),with, data.frame(pct=quantile(harvest,.95))),pct<1)
+eof=eof[rev(order(eof[,c("Scenario","Method","tac")])),]
+eof=eof[!duplicated(eof[,c("Scenario","Method")]),]
+eof=eof[-1,c(3,2,1,4)]
+eof=eof[do.call(order,eof[,c(1,2)]),]
+dimnames(eof)[[1]]=1:7
+eof
+```
+
+# Stock Assessment
+
+As in this yellowfin example the dyanamics can be described by a variety of models that depend on a variety of data types and assumptions 
+
+## The Russell Equation
+
+The provision of fisheries management advice requires the assessment of stock status relative to reference points, the prediction of the response of a stock to management, and checking that predictions are consistent with reality.
+
+@russell1931theoretical summarised the key processes influencing the dynamics of exploited populations, 
+i.e. 
+
+\begin{equation}f(B_{t+1}) = B_{t} - (F+M) + (G+R) \end{equation}
+
+where a biomass $B_{t+1}$ is a function of the biomass in the previous year ($B_t$), losses due to fishing (F) and natural mortality (M), and gains due to growth (G) and recruitment (R). Two processes have been recognised since Russel originally formulated his equation, important for highly migratory populations, i.e. gains due to immigration (I) and losses due to emigration (E) i.e.
+
+\begin{equation}f(B_{t+1}) = B_{t} - (F+M+H)  + (G+R+I)\end{equation}
+
+Knowledge about all these processes affects our ability to provide robust scientific advice. 
+
+Fisheries management relies heavily on reference points, for limits and target, which can be estimated from complex statistical or simple models. An alternative approach is the use of management strategy evaluation (MSE) to tune HCRs to set management measures such as catch quotas, directly from the observed data. Most reference points, from both simple and complex models, are based on the idea of suplus production i.e.
+
+\begin{equation}f(B_{t+1}) = B_{t} - C_t + P(B_t)\end{equation}
+
+where the biomass next year is the sum of current biomass less the removals due to fishing ($C_t$), losses due to natural mortality and gains due to reproduction and growth summarised as the production function $P(B_t)$.
+
+## Excercises
+
+Based on shiny apps
+
+### Evaluate the impact of biology on reference points
+### Compare production functions from  biomass and age based models
+### Perform a cross test using a biomass dynamic model with data generated by an Integrated model
+### Conduct a hindcast i.e.fit to data using a retrospective analysis then predict over years omitted and compare. 
+## Run a projection
+
+
+# References
