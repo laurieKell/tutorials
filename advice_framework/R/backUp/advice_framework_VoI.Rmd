@@ -1,0 +1,255 @@
+---
+title: "Atlantic Wide Tropical Tuna Tagging Programme"
+author: "Laurence Kell"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: rmarkdown:::html_document
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{kobe}
+  \DeclareUnicodeCharacter{00A0}{ }
+  %\VignetteEncoding{UTF-8}
+bibliography: refs.bib
+tags: FLPKG FLR
+license: Creative Commons Attribution-ShareAlike 4.0 International
+---
+
+```{r, eval=TRUE, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(knitr)
+
+opts_chunk$set(comment=NA, 
+               warning=FALSE, 
+               message=FALSE, 
+               error  =FALSE, 
+               echo   =FALSE, 
+               fig.width =4, 
+               fig.height=4,
+               fig.path  ="../tex/hcr-")
+
+iFig=0
+iTab=0
+```
+
+```{r init, eval=TRUE}
+library(ggplotFL)
+library(FLCore)
+library(FLife)
+library(FLBRP)
+library(popbio)
+library(numDeriv)
+source('~/Desktop/flr/FLife/R/lh-srr-sv.R')
+
+yft=FLStocks("1"=readVPA2Box("/home/laurie/Desktop/kobe/inputs/yft/2016/vpa/cluster1/yft2016.ctl"),
+             "2"=readVPA2Box("/home/laurie/Desktop/kobe/inputs/yft/2016/vpa/cluster2/yft2016.ctl"))
+load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/abbys.RData")
+
+sel=setPlusGroup(FLQuant(ddply(ldply(yft,function(x) 
+            as.data.frame(catch.sel(x[,ac(2001:2014)]))),.(age),with,mean(data))[,2],
+            dimnames=list(age=1:6)),40)
+
+yftPar=lhPar(FLPar(abbys[,"yft","mean",drop=TRUE]))
+yftEql=lhEql(yftPar,range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40))
+yftSrr=fmle(as.FLSR(yft[[1]],model="bevholt"),control=list(silent=TRUE))
+
+yftPar[c("s","v")]=FLife:::sv(params(yftSrr),"bevholt",spr0(yftEql))[c("s","v")]
+yftEql=lhEql(yftPar,range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40))
+yftEql=brp(yftEql)
+
+myreplist=SS_output(dir='/home/laurie/Desktop/kobe/inputs/yft/2016/ss/cluster1')
+m=as.FLQuant(transform(melt(myreplist$M_at_age[,-c(1:2)],id="Year"),
+                       year=Year,age=variable,data=value)[,4:6])
+z=as.FLQuant(transform(melt(myreplist$Z_at_age[,-c(1:2)],id="Year"),
+                       year=Year,age=variable,data=value)[,4:6])
+f=z-m
+
+ggplot(as.data.frame(m[,ac(2012)]))+geom_line(aes(age,data))+
+  geom_line(aes(age,data),data=as.data.frame(m(yft[[1]])))
+
+rm(z,m,myreplist)
+
+```
+
+
+# Objectives
+
+To contribute to food security and economic growth of the Atlantic coastal states by ensuring sustainable management of tropical tuna resources in the Atlantic Ocean.
+
+To provide the best science available for the adoption of Conservation and Management Measures i.e.
+    + TACs, Reference Points and Harvest Control Rules for main tropical tuna species,
+    + Spatial management measures such as time-are closures
+    + FAD moratorium and/or management plans,
+    + Development of indicators for neritic tunas
+
+Although fisheries statistics are available for most fleets operating in the Atlantic, they do not provide all the information needed to conduct stock assessments
+
+* Important biological parameters, such as growth or natural mortality are missing or are largely unknown.
+* As a result, the uncertainty in the stock assessments and the associated risks are high.
+
+A specific objective of the AOTTP is therefore to provide evidence based scientific advice to reduce
+risks to the tropical tuna fisheries. This will be achieved through improving estimates of key parameters for stock assessments of growth, natural mortality, movement and stock structure.
+
+## Specific Indicator
+
+Reduction of the uncertainty surrounding the assessment of MSYs
+
+
+```{r sel}
+sel=rbind(cbind(.id=3,as.data.frame((f%/%fapex(f[-11]))[-11,ac(2001:2014)],drop=T)),
+          ldply(yft,function(x) as.data.frame(catch.sel(x[,ac(2001:2014)]),drop=T)))
+
+ggplot(subset(sel,.id!=2))+
+  geom_line(aes(age,data,col=factor(year)))+
+  facet_grid(.id~.)+
+  xlab("Age")+ylab("Selection-at-age")+
+  theme_bw()+theme(legend.position="none")
+```
+
+```{r biol}
+p=ggplot(FLQuants(yftEql,"M"=m,"Maturity"=mat,"Mass"=catch.wt))+
+  geom_line(aes(age,data))+
+  facet_wrap(~qname,scale="free",ncol=2)+
+  xlab("Age")+ylab("")+
+  theme_bw()+
+  scale_x_continuous(limits=c(1,10))
+
+yftEql2=yftEql
+m(yftEql2)[ac(5:40)]=1.5
+mat(yftEql2)[ac(2)]=0.5
+yftPar["k"]=yftPar["k"]*1.5
+stock.wt(yftEql2)=len2wt(vonB(ages(stock.wt(yftEql2)),yftPar),yftPar)
+landings.wt(yftEql2)=stock.wt(yftEql2)
+
+p=rbind(cbind(Scenario=2,ggplot(FLQuants(yftEql2,"M"=m,"Maturity"=mat,"Mass"=catch.wt))$data),
+        cbind(Scenario=1,p$data))
+
+ggplot(p)+
+  geom_line(aes(age,data,col=factor(Scenario)))+
+  facet_wrap(~qname,scale="free",ncol=2)+
+  xlab("Age")+ylab("")+
+  theme_bw()+theme(legend.position="none")+
+  scale_x_continuous(limits=c(1,6))
+```
+
+```{r}
+m=propagate(m(yftEql),6)
+m[,,,,,]=m*rep(seq(.75,1.25,0.25),each=80)
+m[ac(6:40),,,,,c(2,4,6)]=m(yftEql)[ac(1)]
+ggplot(m[ac(1:10)])+
+  geom_line(aes(age,data,col=factor(iter)))+
+  facet_wrap(~iter,ncol=2)
+
+
+mat=mat(yftEql)
+mat["2"]=0.5
+
+sel=propagate(sel,4)
+sel[ac(5:40),,,,,3:4]=1
+sel[ac(2:3),,,,,c(1,3)]=0.75
+ggplot(sel[ac(1:7)])+
+  geom_line(aes(age,data,col=factor(iter)))+
+  facet_wrap(~iter)
+
+k=propagate(yftPar,3)
+k["k"]=k["k"]*seq(0.75,1.25,length.out=3)
+k=len2wt(vonB(ages(mat),k),k)
+
+sim=propagate(yftEql,144)
+scn=expand.grid(m          =1:6,
+                mat        =1:2,
+                sel        =1:4,
+                k          =1:3))
+
+for (i in seq(144)){
+        iter(m(           sim),i)=iter(m,   scn[i,"m"])
+        iter(mat(         sim),i)=iter(mat, scn[i,"mat"])
+        iter(landings.wt( sim),i)=iter(k,   scn[i,"k"])
+        iter(stock.wt(    sim),i)=iter(k,   scn[i,"k"])
+        iter(landings.sel(sim),i)=iter(sel, scn[i,"sel"])}
+
+true=propagate(iter(sim,as.numeric(dimnames(subset(scn,m==3&mat==1&sel==2&k==2))[[1]])),1440)
+refpts(true)=refpts(true)[1,]
+dimnames(refpts(true))$refpt="true"
+refpts(true)[]=NA
+
+refs=computeRefpts(sim)   
+refs=rep(c(refs["msy","harvest"]),each=100)*rep(rlnorm(100,0,.3),144)
+
+refpts(true)[,"harvest"]=refs
+refpts(true)=computeRefpts(true)
+
+res=data.frame(expand.grid(iter       =1:100,
+                           m          =1:6,
+                           mat        =1:2,
+                           sel        =1:4,
+                           k          =1:3),yield=c(refpts(true)[,"yield"]))
+```
+
+
+```{r}
+ggplot(transform(res,yield=pmax(0,yield)))+
+  geom_histogram(aes(yield))+
+  facet_grid(k~.)
+```
+
+
+
+```{r, eval=!TRUE}
+yftPar["s"]=0.9
+eql=lhEql(yftPar,
+          mat=logistic,
+          range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40))
+msy=computeRefpts(eql)["msy",1:5]
+
+fn=function(x,params){
+  params[c("linf","k","t0","a","b","lmat")]=x
+  params["a50"]=vonB(params=yftPar,length=params["lmat"])
+  
+  eql=lhEql(params,
+            mat=logistic,
+            range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40),msy="f0.1")
+  eql=brp(eql)
+  
+  computeRefpts(eql)["msy",1:5]}
+
+jac=jacobian(fn,yftPar[c("linf","k","t0","a","b","lmat"),drop=T],params=yftPar)
+
+dimnames(jac)=list(refpt =c("harvest","yield","rec","biomass","ssb"),
+                   params=c("linf","k","t0","a","b","lmat"))
+
+cov=cor2cov(cor,(abbys[,"yft","var"])) #/(abbys[,"yft","n"]-1)))
+
+fn=function(ref="biomass"){
+hes=jac[ref,]%*%t(jac[ref,])
+dimnames(hes)=list(params=c("linf","k","t0","a","b","lmat"),
+                   params=c("linf","k","t0","a","b","lmat"))
+sum(hes*cov)^0.5/msy[,ref]}
+
+
+cov[upper.tri(cov)]=0
+cov[lower.tri(cov)]=0
+(hes*cov)^0.5/c(msy[,ref])}
+
+
+fn=function(linf=1,k=1,lmat=1,ref="harvest",my=msy,cv=cov,hs=hes){
+  
+  new=diag(cv)*c(linf,k,1,1,1,lmat)
+  
+  diag(cv)=new
+  qnorm(0.20,my[,ref],sum(hs[-c(3,5),-c(3,5)]*cv[-c(3,5),-c(3,5)])^0.5)/my[,ref]
+  }
+fn(1)
+```
+
+```{r kpp1}
+```
+
+
+# Excercise
+
+Based on shiny apps
+
+## 
+
+
+# References
