@@ -2,7 +2,7 @@
 title: "Kobe Advice Framework of the tuna RFMOs"
 author: "Laurence Kell"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: rmarkdown:::pdf_document
+output: rmarkdown:::html_document
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{kobe}
@@ -38,8 +38,8 @@ library(ggplot2)
 library(kobe)
 library(reshape2)
 
-#dirMy="D:/Repository/DGMARETuna/tutorials/advice_framework"
-dirMy="/home/laurie/Desktop/flr/tutorials/advice_framework"
+dirMy="D:/Repository/DGMARETuna/tutorials/advice_framework"
+#dirMy="/home/laurie/Desktop/flr/tutorials/advice_framework"
 dirTex=file.path(dirMy,"tex")
 dirDat=file.path(dirMy,"data")
 
