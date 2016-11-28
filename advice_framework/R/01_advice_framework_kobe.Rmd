@@ -1,5 +1,3 @@
-Should we also include something about simulation testing and MSE? After all I keep hearing that MSE will make all our lives easier and assessments will become a thing of the past.
-Laurie
 ---
 title: "Kobe Advice Framework of the tuna RFMOs"
 author: "Laurence Kell"
@@ -40,7 +38,7 @@ library(ggplot2)
 library(kobe)
 library(reshape2)
 
-dirMy="D:/Repository/DGMARETuna/tutorials/advice_framework"
+#dirMy="D:/Repository/DGMARETuna/tutorials/advice_framework"
 dirMy="/home/laurie/Desktop/flr/tutorials/advice_framework"
 dirTex=file.path(dirMy,"tex")
 dirDat=file.path(dirMy,"data")
