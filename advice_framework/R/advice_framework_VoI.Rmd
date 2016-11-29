@@ -40,7 +40,6 @@ library(popbio)
 library(numDeriv)
 library(reshape2)
 library(plyr)
-library(FLife)
 ```
 
 ```{r ss, eval=!TRUE}
@@ -83,10 +82,6 @@ yft=FLStocks("1"=readVPA2Box("/home/laurie/Desktop/kobe/inputs/yft/2016/vpa/clus
              "2"=readVPA2Box("/home/laurie/Desktop/kobe/inputs/yft/2016/vpa/cluster2/yft2016.ctl",minage=0))
 load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/abbys.RData")
 
-sel=setPlusGroup(FLQuant(ddply(ldply(yft,function(x) 
-            as.data.frame(catch.sel(x[,ac(2001:2014)]))),.(age),with,mean(data))[,2],
-            dimnames=list(age=1:6)),40)
-
 save(yft,file="/home/laurie/Desktop/flr/tutorials/advice_framework/data/yft.RData",compress="xz")
 ```
 
@@ -115,6 +110,7 @@ risks to the tropical tuna fisheries. This will be achieved through improving es
 Reduction of the uncertainty surrounding the assessment of MSYs
 
 ```{r sel, fi.width=8,fig.height=4}
+load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/yft.RData")
 load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/ss.RData")
 
 sel=rbind(cbind(.id=3,as.data.frame((fSS2%/%fapex(fSS2[-11]))[-11,ac(2001:2014)],drop=T)),
@@ -148,7 +144,7 @@ age=FLQuant(1:6,dimnames=list(age=1:6))
 sel.pattern=FLQuants("domed"   =dnormal(age,     FLPar(a1=5,sl=2.5,sr=.5  )),
                      "flat"    =dnormal(age,     FLPar(a1=5,sl=2.5,sr=5000)),
                      "juvenile"=dnormal(age[1:3],FLPar(a1=2,sl=0.5,sr=0.5 )))
-sel.pattern=llply(sel.pattern,setPlusGroup,plusgroup=8)
+sel.pattern=llply(sel.pattern,setPlusGroup,plusgroup=40)
 ```
 
 ```{r,fig.height=6,fig.width=8}
@@ -182,87 +178,138 @@ load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/yft.RData")
 
 yftPar=lhPar(FLPar(abbys[,"yft","mean",drop=TRUE]))
 yftEql=lhEql(yftPar,range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40))
-yftSrr=fmle(as.FLSR(yft[[1]],model="bevholt"),control=list(silent=TRUE))
-
-yftPar[c("s","v")]=FLife:::sv(params(yftSrr),"bevholt",spr0(yftEql))[c("s","v")]
-yftEql=lhEql(yftPar,range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40))
-yftEql=brp(yftEql)
 ```
 
 
 ```{r}
-ggplot(FLQuants(yftEql,"m"))+
+ggplot(FLQuants(yftEql,"m","mat","catch.wt","catch.sel"))+
   geom_line(aes(age,data))+
+  facet_wrap(~qname,scale="free_y")+
   scale_x_continuous(lim=c(1,10))+
   theme_bw()+xlab("Age")+ylab("M-at-age")
 ```
 
 ```{r}
-ggplot(FLQuants(yftEql,"mat"))+
-  geom_line(aes(age,data))+
-  scale_x_continuous(lim=c(1,10))+
-  theme_bw()+ylab("Maturity-at-age")
+plot(yftEql)+
+  theme_bw()
 ```
 
-```{r, eval=FALSE}
-m=propagate(m(yftEql),6)
-m[,,,,,]=m*rep(seq(.75,1.25,0.25),each=80)
-m[ac(6:40),,,,,c(2,4,6)]=m(yftEql)[ac(1)]
+```{r}
+m=propagate(m(yftEql),2)
+m[ac(6:40),,,,,2]=m(yftEql)[ac(1)]
 ggplot(m[ac(1:10)])+
   geom_line(aes(age,data,col=factor(iter)))+
-  facet_wrap(~iter,ncol=2)
-
-
-mat=mat(yftEql)
-mat["2"]=0.5
-
-sel=propagate(sel,4)
-sel[ac(5:40),,,,,3:4]=1
-sel[ac(2:3),,,,,c(1,3)]=0.75
-ggplot(sel[ac(1:7)])+
-  geom_line(aes(age,data,col=factor(iter)))+
-  facet_wrap(~iter)
-
-k=propagate(yftPar,3)
-k["k"]=k["k"]*seq(0.75,1.25,length.out=3)
-k=len2wt(vonB(ages(mat),k),k)
-
-sim=propagate(yftEql,144)
-scn=expand.grid(m          =1:6,
-                mat        =1:2,
-                sel        =1:4,
-                k          =1:3))
-
-for (i in seq(144)){
-        iter(m(           sim),i)=iter(m,   scn[i,"m"])
-        iter(mat(         sim),i)=iter(mat, scn[i,"mat"])
-        iter(landings.wt( sim),i)=iter(k,   scn[i,"k"])
-        iter(stock.wt(    sim),i)=iter(k,   scn[i,"k"])
-        iter(landings.sel(sim),i)=iter(sel, scn[i,"sel"])}
-
-true=propagate(iter(sim,as.numeric(dimnames(subset(scn,m==3&mat==1&sel==2&k==2))[[1]])),1440)
-refpts(true)=refpts(true)[1,]
-dimnames(refpts(true))$refpt="true"
-refpts(true)[]=NA
-
-refs=computeRefpts(sim)   
-refs=rep(c(refs["msy","harvest"]),each=100)*rep(rlnorm(100,0,.3),144)
-
-refpts(true)[,"harvest"]=refs
-refpts(true)=computeRefpts(true)
-
-res=data.frame(expand.grid(iter       =1:100,
-                           m          =1:6,
-                           mat        =1:2,
-                           sel        =1:4,
-                           k          =1:3),yield=c(refpts(true)[,"yield"]))
-
-ggplot(transform(res,yield=pmax(0,yield)))+
-  geom_histogram(aes(yield))+
-  facet_grid(k~.)
+  theme_bw()+xlab("Age")+ylab("M-at-age")+
+  theme(legend.position="none")
 ```
 
+```{r}
+sel=propagate(catch.sel(yftEql),4)
+iter(sel,1)=setPlusGroup(sel.pattern[[1]],40)+setPlusGroup(sel.pattern[[3]],40)/2
+iter(sel,2)=setPlusGroup(sel.pattern[[2]],40)+setPlusGroup(sel.pattern[[3]],40)/2
+iter(sel,3)=setPlusGroup(sel.pattern[[1]],40)+setPlusGroup(sel.pattern[[3]],40)
+iter(sel,4)=setPlusGroup(sel.pattern[[2]],40)+setPlusGroup(sel.pattern[[3]],40)
+ggplot(sel[ac(1:10)])+
+  geom_line(aes(age,data,col=factor(iter)))+
+  theme_bw()+xlab("Age")+ylab("M-at-age")+
+  theme(legend.position="none")
+```
 
+```{r}
+eql=FLBRPs(mlply(data.frame(s=c(0.9,0.75)), function(s,par){
+  par["s"]=s
+  res=lhEql(par)
+  refpts(res)=refpts(res)["msy"]
+  res},par=yftPar))
+
+plot(eql)+
+  theme_bw()
+```
+
+```{r, structuralUncertainty}
+vec=list(m=m,sel=sel,s=c(0.9,0.75))
+
+eql=FLBRPs(mlply(expand.grid(m  =1:2,
+                             sel=1:4,
+                             s  =1:2), function(m,sel,s,par,vec){
+            #print(c(m,sel,s))                
+            par["s"]=vec[["s"]][s]
+            res=lhEql(par,range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40))
+            m(  res)=iter(vec[["m"]],m)
+            landings.sel(res)=iter(vec[["sel"]],sel)
+            
+            res=brp(res)
+            refpts(res)=refpts(res)["msy"]
+            res},par=yftPar,vec=vec))
+
+plot(eql)+
+  theme_bw()+
+  theme(legend.position="none")
+```
+
+```{r, valueUcertainty}
+pms=c("linf","k","lmat","m1")
+yftPar[ "s"]=0.9
+yftPar["m1"]=0.55
+
+eql=lhEql(yftPar,
+          mat  =logistic,
+          m    =function(length,params) exp(params["m1"])*(length^-1.61)%*%(params["linf"]^1.44)%*%params["k"],
+          range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40))
+msy=computeRefpts(eql)["msy",1:5]
+
+fn=function(x,params){
+  params[pms]=x
+  params["a50"]=vonB(params=yftPar,length=params["lmat"])
+  
+  eql=lhEql(params,
+            mat  =logistic,
+            m    =function(length,params) exp(params["m1"])*(length^-1.61)%*%(params["linf"]^1.44)%*%params["k"],
+            range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40),msy="f0.1")
+  eql=brp(eql)
+  
+  computeRefpts(eql)["msy",1:5]}
+
+jac=jacobian(fn,yftPar[pms,drop=T],params=yftPar)
+
+dimnames(jac)=list(refpt =c("harvest","yield","rec","biomass","ssb"),
+                   params=pms)
+var=abbys[,"yft","var"]/(abbys[,"yft","n"]-1)
+
+
+cor=array(0,dim=rep(length(pms),2),dimnames=list(params=pms,params=pms))
+diag(cor)=1
+var=diag(cor)
+var[pms]=(yftPar[pms]*0.3)^2
+
+cov=cor2cov(cor,var)
+
+fnCV=function(ref="biomass",cv=cov,jc=jac){
+  hes=jc[ref,]%*%t(jc[ref,])
+  dimnames(hes)=list(params=pms,params=pms)
+  ((hes*cv)^0.5)/c(msy[,ref])}
+
+rev(sort(diag(fnCV("biomass"))))
+rev(sort(diag(fnCV("ssb"))))
+rev(sort(diag(fnCV("harvest"))))
+rev(sort(diag(fnCV("yield"))))
+
+fnP=function(ref,p,msy,cov,hes=jac[ref,]%*%t(jac[ref,])){
+       qnorm(p,msy[,ref],sum(hes*cov)^0.5)/msy[,ref]}
+
+cv2=cov
+diag(cv2)=diag(cv2)/4
+fnP("biomass",p=.8,msy,cov)
+fnP("biomass",p=.8,msy,cv2)
+fnP("ssb",    p=.8,msy,cov)
+fnP("ssb",    p=.8,msy,cv2)
+fnP("harvest",p=.2,msy,cov)
+fnP("harvest",p=.2,msy,cv2)
+fnP("yield",  p=.2,msy,cov)
+fnP("yield",  p=.2,msy,cv2)
+```
+
+### Reference points based on uncertainty
 ```{r, eval=!TRUE}
 pms=c("linf","k","t0","a","b","lmat","s","bg")
 yftPar["s"]=0.9
@@ -310,7 +357,6 @@ rev(sort(diag(fn("yield"))))
 ref="harvest"
 hes=jac[ref,]%*%t(jac[ref,])
 qnorm(0.20,msy[,ref],sum(hes[-c(3,5),-c(3,5)]*cov[-c(3,5),-c(3,5)])^0.5)/msy[,ref]
-
 ```
 
 ```{r kpp1}
@@ -325,3 +371,11 @@ Based on shiny apps
 
 
 # References
+
+<!-- pb=FLBRP(ple4) -->
+<!-- pb=propagate(FLBRP(ple4),2) -->
+<!-- params(pb)=propagate(params(pb),2) -->
+<!-- params(pb)["a"]=2 -->
+<!-- pb=brp(pb) -->
+<!-- plot(pb) -->
+
