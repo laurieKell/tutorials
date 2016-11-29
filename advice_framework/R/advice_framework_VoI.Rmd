@@ -13,7 +13,7 @@ tags: FLPKG FLR
 license: Creative Commons Attribution-ShareAlike 4.0 International
 ---
 
-```{r, eval=TRUE, echo=FALSE}
+```{r knitr, eval=TRUE, echo=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 
 library(knitr)
@@ -25,7 +25,7 @@ opts_chunk$set(comment=NA,
                echo   =FALSE, 
                fig.width =8, 
                fig.height=4,
-               fig.path  ="../tex/hcr-")
+               fig.path  ="../tex/voi-")
 
 iFig=0
 iTab=0
@@ -128,7 +128,7 @@ ggplot(sel)+
   theme_bw()+theme(legend.position="none")
 ```
 
-```{r}
+```{r sel-fig}
 a=FLQuant(seq(0,8,0.1),dimnames=list(age=1:81))
 ggplot(ldply(FLQuants("domed"   =dnormal(a,FLPar(a1=5,sl=2.5,sr=.5  )),
                       "flat"    =dnormal(a,FLPar(a1=5,sl=2.5,sr=5000)),
@@ -138,7 +138,7 @@ ggplot(ldply(FLQuants("domed"   =dnormal(a,FLPar(a1=5,sl=2.5,sr=.5  )),
   theme_bw()+theme(legend.position="bottom")
 ```
 
-```{r}
+```{r sel2}
 age=FLQuant(1:6,dimnames=list(age=1:6))
 
 sel.pattern=FLQuants("domed"   =dnormal(age,     FLPar(a1=5,sl=2.5,sr=.5  )),
@@ -147,7 +147,7 @@ sel.pattern=FLQuants("domed"   =dnormal(age,     FLPar(a1=5,sl=2.5,sr=.5  )),
 sel.pattern=llply(sel.pattern,setPlusGroup,plusgroup=40)
 ```
 
-```{r,fig.height=6,fig.width=8}
+```{r srr,fig.height=6,fig.width=8}
 srr=FLSRs("vpa1"=fmle(as.FLSR(yft[[1]],model="bevholt"),control=list(control=FALSE)))
 srr[["vpa2"]]=fmle(as.FLSR(yft[[2]],model="bevholt"),control=list(control=FALSE))
 srr[["ss1"]] =fmle(FLSR(rec=recSS[[1]],ssb=ssbSS[[1]],model="bevholt"),control=list(control=FALSE))
@@ -172,7 +172,7 @@ ggplot(sr)+
 ```
 
 
-```{r}
+```{r eql}
 load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/abbys.RData")
 load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/yft.RData")
 
@@ -181,7 +181,7 @@ yftEql=lhEql(yftPar,range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40))
 ```
 
 
-```{r}
+```{r eqlBiol}
 ggplot(FLQuants(yftEql,"m","mat","catch.wt","catch.sel"))+
   geom_line(aes(age,data))+
   facet_wrap(~qname,scale="free_y")+
@@ -189,12 +189,12 @@ ggplot(FLQuants(yftEql,"m","mat","catch.wt","catch.sel"))+
   theme_bw()+xlab("Age")+ylab("M-at-age")
 ```
 
-```{r}
+```{r, eqlProd}
 plot(yftEql)+
   theme_bw()
 ```
 
-```{r}
+```{r m}
 m=propagate(m(yftEql),2)
 m[ac(6:40),,,,,2]=m(yftEql)[ac(1)]
 ggplot(m[ac(1:10)])+
@@ -203,7 +203,7 @@ ggplot(m[ac(1:10)])+
   theme(legend.position="none")
 ```
 
-```{r}
+```{r sel3}
 sel=propagate(catch.sel(yftEql),4)
 iter(sel,1)=setPlusGroup(sel.pattern[[1]],40)+setPlusGroup(sel.pattern[[3]],40)/2
 iter(sel,2)=setPlusGroup(sel.pattern[[2]],40)+setPlusGroup(sel.pattern[[3]],40)/2
@@ -215,7 +215,7 @@ ggplot(sel[ac(1:10)])+
   theme(legend.position="none")
 ```
 
-```{r}
+```{r eql2}
 eql=FLBRPs(mlply(data.frame(s=c(0.9,0.75)), function(s,par){
   par["s"]=s
   res=lhEql(par)
