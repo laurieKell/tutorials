@@ -129,11 +129,14 @@ ggplot(sel)+
 ```
 
 ```{r sel-fig}
+dnormal=FLife:::dnormal
+
 a=FLQuant(seq(0,8,0.1),dimnames=list(age=1:81))
-ggplot(ldply(FLQuants("domed"   =dnormal(a,FLPar(a1=5,sl=2.5,sr=.5  )),
+ggplot(transform(ldply(FLQuants(
+                      "domed"   =dnormal(a,FLPar(a1=5,sl=2.5,sr=.5  )),
                       "flat"    =dnormal(a,FLPar(a1=5,sl=2.5,sr=5000)),
                       "juvenile"=dnormal(a,FLPar(a1=2,sl=0.5,sr=0.5 ))),
-       as.data.frame))+
+       as.data.frame),age=age/10))+
   geom_line(aes(age,data,col=.id))+
   theme_bw()+theme(legend.position="bottom")
 ```
@@ -196,7 +199,7 @@ plot(yftEql)+
 
 ```{r m}
 m=propagate(m(yftEql),2)
-m[ac(6:40),,,,,2]=m(yftEql)[ac(1)]
+m[ac(5:40),,,,,2]=m(yftEql)[ac(1)]
 ggplot(m[ac(1:10)])+
   geom_line(aes(age,data,col=factor(iter)))+
   theme_bw()+xlab("Age")+ylab("M-at-age")+
@@ -232,15 +235,28 @@ vec=list(m=m,sel=sel,s=c(0.9,0.75))
 eql=FLBRPs(mlply(expand.grid(m  =1:2,
                              sel=1:4,
                              s  =1:2), function(m,sel,s,par,vec){
-            #print(c(m,sel,s))                
-            par["s"]=vec[["s"]][s]
-            res=lhEql(par,range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40))
-            m(  res)=iter(vec[["m"]],m)
-            landings.sel(res)=iter(vec[["sel"]],sel)
+    #print(c(m,sel,s))                
+    par["s"]=vec[["s"]][s]
+    res=lhEql(par,range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40))
+    m(  res)=iter(vec[["m"]],m)
+    landings.sel(res)=iter(vec[["sel"]],sel)
             
-            res=brp(res)
-            refpts(res)=refpts(res)["msy"]
-            res},par=yftPar,vec=vec))
+    refpts(res)=computeRefpts(res)
+            
+    fn=function(v,msy){
+       
+          params(res)[c("a","b")]=ab(FLPar("s"=par["s"],
+                                           "v"=v),"bevholt",spr0(res))[c("a","b")]
+          (computeRefpts(res)["msy","yield"]-msy)^2}
+    
+     params(res)[c("a","b")]=ab(FLPar("s"=par["s"],
+                                      "v"=optimise(fn,c(0,5000),200)$minimum),
+                                      "bevholt",spr0(res))[c("a","b")]
+    
+    res=brp(res)
+    fbar(res)=seq(0,1,length.out=101)*refpts(res)["crash","harvest"]
+    refpts(res)=refpts(res)[c("msy","crash")]
+    res},par=yftPar,vec=vec))
 
 plot(eql)+
   theme_bw()+
@@ -248,6 +264,8 @@ plot(eql)+
 ```
 
 ```{r, valueUcertainty}
+logistic=FLife:::logistic
+vonB    =FLife:::vonB
 pms=c("linf","k","lmat","m1")
 yftPar[ "s"]=0.9
 yftPar["m1"]=0.55
@@ -373,8 +391,7 @@ Based on shiny apps
 # References
 
 <!-- pb=FLBRP(ple4) -->
-<!-- pb=propagate(FLBRP(ple4),2) -->
-<!-- params(pb)=propagate(params(pb),2) -->
+<!-- pb=propagate(FLBRP(ple4),2,params=TRUE) -->
 <!-- params(pb)["a"]=2 -->
 <!-- pb=brp(pb) -->
 <!-- plot(pb) -->
