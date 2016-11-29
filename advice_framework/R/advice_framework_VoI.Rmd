@@ -85,6 +85,29 @@ load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/abbys.RData")
 save(yft,file="/home/laurie/Desktop/flr/tutorials/advice_framework/data/yft.RData",compress="xz")
 ```
 
+```{r aspm}
+library(FLCore)
+library(plyr)
+library(reshape)
+library(stringr)
+
+file=c("/home/laurie/Desktop/kobe/inputs/yft/2016/aspm/analysis/cluster1/aspm.rep",
+       "/home/laurie/Desktop/kobe/inputs/yft/2016/aspm/analysis/cluster2/aspm.rep")
+source('~/Desktop/flr/kobe/R/kobe-aspm.R')
+
+selASPM=FLQuants(cluster1=readASPM(file[1],"f"),
+                 cluster2=readASPM(file[1],"f"))
+selASPM=llply(selASPM,function(x) x%/%fapex(x))
+                 
+recASPM=FLQuants(cluster1=readASPM(file[1],"sr")[["rec"]],
+                 cluster2=readASPM(file[2],"sr")[["rec"]])
+
+ssbASPM=FLQuants(cluster1=readASPM(file[1],"sr")[["ssb"]],
+                 cluster2=readASPM(file[2],"sr")[["ssb"]])
+
+save(selASPM,recASPM,ssbASPM,file="/home/laurie/Desktop/flr/tutorials/advice_framework/data/aspm.RData",
+     compress="xz")
+```
 
 # Objectives
 
@@ -112,13 +135,16 @@ Reduction of the uncertainty surrounding the assessment of MSYs
 ```{r sel, fi.width=8,fig.height=4}
 load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/yft.RData")
 load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/ss.RData")
+load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/aspm.RData")
 
-sel=rbind(cbind(.id=3,as.data.frame((fSS2%/%fapex(fSS2[-11]))[-11,ac(2001:2014)],drop=T)),
+sel=rbind(cbind(.id=5,as.data.frame((selASPM[[1]]),drop=T)),
+          cbind(.id=6,as.data.frame((selASPM[[2]]),drop=T)),
+          cbind(.id=3,as.data.frame((fSS2%/%fapex(fSS2[-11]))[-11,ac(2001:2014)],drop=T)),
           cbind(.id=4,as.data.frame((fSS2%/%fapex(fSS2[-11]))[-11,ac(2001:2014)],drop=T)),
           ldply(yft,function(x) as.data.frame(catch.sel(x[,ac(2001:2014)]),drop=T)))
 sel=subset(sel,age<=6)
-sel$method =c("VPA","VPA","SS","SS")[as.numeric(sel$.id)]
-sel$cluster=paste("Cluster",c("1","2","1","2"))[as.numeric(sel$.id)]
+sel$method =c("VPA","VPA","SS","SS","ASPM","ASPM")[as.numeric(sel$.id)]
+sel$cluster=paste("Cluster",c("1","2","1","2","1","2"))[as.numeric(sel$.id)]
 
 ggplot(sel)+
   geom_point( aes(age,data))+
@@ -152,24 +178,26 @@ sel.pattern=llply(sel.pattern,setPlusGroup,plusgroup=40)
 
 ```{r srr,fig.height=6,fig.width=8}
 srr=FLSRs("vpa1"=fmle(as.FLSR(yft[[1]],model="bevholt"),control=list(control=FALSE)))
-srr[["vpa2"]]=fmle(as.FLSR(yft[[2]],model="bevholt"),control=list(control=FALSE))
-srr[["ss1"]] =fmle(FLSR(rec=recSS[[1]],ssb=ssbSS[[1]],model="bevholt"),control=list(control=FALSE))
-srr[["ss2"]] =fmle(FLSR(rec=recSS[[2]],ssb=ssbSS[[2]],model="bevholt"),control=list(control=FALSE))
+srr[["vpa2"]] =fmle(as.FLSR(yft[[2]],model="bevholt"),control=list(control=FALSE))
+srr[["ss1"]]  =fmle(FLSR(rec=recSS[[1]],ssb=ssbSS[[1]],model="bevholt"),control=list(control=FALSE))
+srr[["ss2"]]  =fmle(FLSR(rec=recSS[[2]],ssb=ssbSS[[2]],model="bevholt"),control=list(control=FALSE))
+srr[["aspm1"]]=fmle(FLSR(rec=recASPM[[1]],ssb=ssbASPM[[1]],model="bevholt"),control=list(control=FALSE))
+srr[["aspm2"]]=fmle(FLSR(rec=recASPM[[2]],ssb=ssbASPM[[2]],model="bevholt"),control=list(control=FALSE))
 
 sr=ldply(srr,function(x) model.frame(FLQuants(x,"rec","ssb"),drop=TRUE))
 ft=ldply(srr,function(x) model.frame(FLQuants(
                                     hat=predict(x,ssb=FLQuant(0:100)*max(ssb(x))*0.01),
                                     ssb=FLQuant(0:100)*max(ssb(x))*0.01)))
 
-sr$method =c("SS","SS","VPA","VPA")[as.numeric(factor(sr$.id))]
-sr$cluster=paste("Cluster",c("1","2","1","2"))[as.numeric(factor(sr$.id))]
-ft$method =c("SS","SS","VPA","VPA")[as.numeric(factor(ft$.id))]
-ft$cluster=paste("Cluster",c("1","2","1","2"))[as.numeric(factor(ft$.id))]
+sr$method =c("SS","SS","VPA","VPA","ASPM","ASPM")[as.numeric(factor(sr$.id))]
+sr$cluster=paste("Cluster",c("1","2","1","2","1","2"))[as.numeric(factor(sr$.id))]
+ft$method =c("SS","SS","VPA","VPA","ASPM","ASPM")[as.numeric(factor(ft$.id))]
+ft$cluster=paste("Cluster",c("1","2","1","2","1","2"))[as.numeric(factor(ft$.id))]
 
 ggplot(sr)+
   geom_point( aes(ssb,rec))+
   geom_line( aes(ssb,hat),data=ft,col="red")+
-  facet_wrap(cluster~method,scale="free")+
+  facet_wrap(method~cluster,scale="free",ncol=2)+
   xlab("SSB")+ylab("Recruits")+
   theme_bw()
 ```
