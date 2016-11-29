@@ -1,0 +1,95 @@
+---
+title: "Assessment & advice in (tuna) RFMOs"
+author: "Laurence Kell & Niels Hintzen"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: rmarkdown:::html_document
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{kobe}
+  \DeclareUnicodeCharacter{00A0}{ }
+  %\VignetteEncoding{UTF-8}
+bibliography: refs.bib
+tags: FLPKG FLR
+license: Creative Commons Attribution-ShareAlike 4.0 International
+---
+
+```{r, eval=TRUE, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(knitr)
+
+opts_chunk$set(comment=NA, 
+               warning=FALSE, 
+               message=FALSE, 
+               error  =FALSE, 
+               echo   =FALSE, 
+               eval   =!TRUE,
+               fig.width =4, 
+               fig.height=4)
+
+iFig=0
+iTab=0
+```
+
+
+```{r init, eval=TRUE}
+library(plyr)
+library(ggplot2)
+library(kobe)
+library(reshape2)
+
+dirMy="D:/Repository/DGMARETuna/tutorials/advice_framework"
+dirMy="/home/laurie/Desktop/flr/tutorials/advice_framework"
+dirTex=file.path(dirMy,"tex")
+dirDat=file.path(dirMy,"data")
+
+load(file.path(dirDat,"yft.RData"))
+
+```
+
+### Stock Status and Reference points (LAURIE)       
+
+To assess the status of a stock, reference points are needed. Is a stock overfished, or is overfishing going on. These aspects are considered in the light of stock status versus reference points.
+
+In general, two types of reference points can be distinguished:
+1. Target reference points, such as Fmsy and Bmsy and
+2. Limit reference points, such as B~lim~, F~lim~ (IOTC), F~SPR~ or 20%~SSB0~ (ICCAT, SPRFMO)
+
+Only the target reference points are shown in the Kobe plot below, in relation to the estimated stock size and fishing mortality. 
+
+![](../tex/kobeExample.png)
+
+**Figure `r iFig=iFig+1; iFig`.** Example of Kobe plot for a pelagic fish being sustainably fished (green area), overfished and overfishing going on (red area) and being either overfished (yellow left) and with overfishing (yellow right).
+
+## Reference points under biomass dynamic models
+
+Under biomass dynamic models, target reference points are rather easily defined. There are two parameters crucial in calculating the reference points: [inline equation ]
+
+## Reference points under integrated (age-based) models
+
+The target reference points can be estimated based on life-history characteristics such as growth, natural mortality, fecundity etc. To get an estimate out an assumption on recruitment needs to be made as well. For this purpose, often stock-recruitment relationships are used. 
+
+
+
+
+
+* Types of reference points used (LAURIE)
+    + Fmsy, Bmsy, Bpa, Blim, B0, B40
+    <span style="color:red"> we dont use BPA; BLIM, B40, it would be better to talk about targets and limits</span>
+
+* Bringing reference points into a policy context (LAURIE)
+    + Kobe plot
+
+* How to estimate reference points (NIELS)
+    + SSB - Recruitment
+    + Fmsy, Bmsy, Msy
+    + Assumptions on selectivity & recruitment
+
+* Difficulties with reference points (NIELS)
+    + Changing biology
+    + Mixed fisheries
+    <span style="color:red"> Non-stationarity</span>
+
+
+
+# References
