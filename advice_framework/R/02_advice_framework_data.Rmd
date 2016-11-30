@@ -50,25 +50,6 @@ dirDat=file.path(dirMy,"data")
 load(file.path(dirDat,"yft.RData"))
 load(file.path(dirDat,"jjm.RData"))
 
-trk =transform(subset(yft,year%in%1970:2014),stock=stock,harvest=harvest)[,
-                  c("year","Scenario","Method","stock","harvest")]
-trk2=ddply(melt(trk,id=c("Scenario","Method","year")),.(variable,year,Method,Scenario),with, 
-               median(value))
-msy  =ddply(yft,.(Method,Scenario), with, c("bmsy"=bmsy[!is.na(bmsy)][1],"fmsy"=fmsy[!is.na(fmsy)][1]))
-
-quads=rbind(data.frame(x=c(-Inf,-Inf,Inf,Inf), y=c(-Inf,  1,  1,-Inf), 
-                         fill=as.factor("high")),
-            data.frame(x=c(-Inf,-Inf,Inf,Inf), y=c(   1,Inf,Inf,   1), 
-                         fill=as.factor("low")))
-quad2=rbind(cbind(variable="stock",ddply(msy,.(Method,Scenario), 
-                        transform, y=quads$y*bmsy,x=quads$x,fill=quads$fill)),
-            cbind(variable="harvest",ddply(msy,.(Method,Scenario), 
-                        transform, y=quads$y*fmsy,x=quads$x,fill=quads$fill)))[,-(4:5)]
-
-quad2=transform(quad2,variable=ifelse(variable=="harvest","F/F[MSY]","B/B[MSY]"))
-
-hcr= data.frame(stock  =c(0.0 ,0.1 , 0.6,7.5), 
-                harvest=c(0.01,0.01, 0.7,0.7))
 ```
 
 # Assessment Models and data requirements
@@ -214,7 +195,7 @@ Data on growth is necessary to convert length-frequency data to age data, get an
 1. Observing growth from length-frequency / age-frequency data
 2. Observing growth from individuals through tagging
 
-In the first case, growth cannot be determined exactly, but is derived from the combined growth of all fish from year *italics y* to year *italics y+1*.
+In the first case, growth cannot be determined exactly, but is derived from the combined growth of all fish from year *y* to year *y+1*.
 In the second case, when tags are placed and fish are released back, the length of the fish is recorded. Once recaptured, the size of the fish can be measured again and the exact growth rate for that individual can be calculated. Combining all the tags, the growth rate of the entire stock at age and length can be determined. 
 
 
