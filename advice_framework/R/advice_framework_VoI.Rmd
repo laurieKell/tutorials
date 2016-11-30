@@ -289,6 +289,8 @@ eql=FLBRPs(mlply(expand.grid(m  =1:2,
 plot(eql)+
   theme_bw()+
   theme(legend.position="none")
+
+save(eql,file="/home/laurie/Desktop/flr/tutorials/advice_framework/data/eql.RData")
 ```
 
 ```{r, valueUcertainty}
@@ -404,6 +406,12 @@ ref="harvest"
 hes=jac[ref,]%*%t(jac[ref,])
 qnorm(0.20,msy[,ref],sum(hes[-c(3,5),-c(3,5)]*cov[-c(3,5),-c(3,5)])^0.5)/msy[,ref]
 ```
+
+```{r kpp1}
+jac["harvest"]%*%t(jac["ssb"])*cov
+
+```
+
 
 ```{r kpp1}
 ```
