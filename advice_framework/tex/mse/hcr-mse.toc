@@ -1,0 +1,4 @@
+\beamer@endinputifotherversion {3.36pt}
+\beamer@sectionintoc {1}{Precautionary Approach}{3}{0}{1}
+\beamer@sectionintoc {2}{Process}{6}{0}{2}
+\beamer@sectionintoc {3}{Examples}{7}{0}{3}

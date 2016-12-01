@@ -357,6 +357,13 @@ fnP("yield",  p=.2,msy,cov)
 fnP("yield",  p=.2,msy,cv2)
 ```
 
+
+```{r cov,eval=FALSE}
+jac["harvest"]%*%t(jac["ssb"])*cov
+
+```
+
+
 ### Reference points based on uncertainty
 ```{r, eval=!TRUE}
 pms=c("linf","k","t0","a","b","lmat","s","bg")
@@ -405,11 +412,6 @@ rev(sort(diag(fn("yield"))))
 ref="harvest"
 hes=jac[ref,]%*%t(jac[ref,])
 qnorm(0.20,msy[,ref],sum(hes[-c(3,5),-c(3,5)]*cov[-c(3,5),-c(3,5)])^0.5)/msy[,ref]
-```
-
-```{r kpp1}
-jac["harvest"]%*%t(jac["ssb"])*cov
-
 ```
 
 
