@@ -200,11 +200,15 @@ The use of an assessment model as the OM implies that they can describe nature a
 
 There are many important processes, however, that are not modelled in stock assessments and affect the robustness of control systems. Therefore to ensure a control system is robust also requires OMs to be conditioned based on expert beliefs and other a priori information about the processes that may affect the behaviour of management systems in the future. I.e. the focus is on the future, not on fitting historical data as when conditioning an OM on a stock assessment. This is a less data, and more hypothesis-orientated approach.
 
-## ICCAT
-## IOTC
-## IATTC
-## WCPFC
-## CCSBT
+## 
+
+http://groupspaces.com/tRFMO-MSE/pages/meetings-kickoff
+
+### ICCAT
+### IOTC
+### IATTC
+### WCPFC
+### CCSBT
 
 
 ### **Exercise:**                                             

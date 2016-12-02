@@ -1,5 +1,5 @@
 ---
-title: "Atlantic Wide Tropical Tuna Tagging Programme"
+title: "Value-of-Infomation"
 author: "Laurence Kell"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: rmarkdown:::html_document
@@ -13,6 +13,7 @@ tags: FLPKG FLR
 license: Creative Commons Attribution-ShareAlike 4.0 International
 ---
 
+
 ```{r knitr, eval=TRUE, echo=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 
@@ -25,7 +26,8 @@ opts_chunk$set(comment=NA,
                echo   =FALSE, 
                fig.width =8, 
                fig.height=4,
-               fig.path  ="../tex/voi-")
+               fig.path  ="../tex/voi-",
+               cache     =TRUE)
 
 iFig=0
 iTab=0
@@ -41,6 +43,54 @@ library(numDeriv)
 library(reshape2)
 library(plyr)
 ```
+
+# The Value of information
+
+Risk is an uncertainty that matters, and what matters are management objectives. For a given level of risk, investment in reducing uncertainty can be cost effective because, management actions can then be less conservative. Correspondingly the value of new information is high if it helps in deciding how should spending be allocated between different scientific research programmes and monitoring control and surveillance in order to achieve management objectives.
+
+
+```{r}
+cv1=data.frame(x=seq(0,1.5,0.01),y=dnorm(seq(0,1.5,0.01),0.5,.1))
+cv2=data.frame(x=seq(0,1.5,0.01),y=dnorm(seq(0,1.5,0.01),0.5,.2))
+
+ggplot()+
+  geom_line(aes(x,y),col="blue",data=cv1)+
+  geom_line(aes(x,y),col="red", data=cv2)+
+  geom_vline(aes(xintercept=0.4))
+```
+
+**Figure `r iFig=iFig+1; iFig`.** Risk and uncertainty.
+
+
+In the context of HCRs, the focus should be on key quantities that affect the performance of the overall management strategy This can be done in the Management Strategy Evaluation (MSE) process. Some forms of uncertainty, e.g. growth are relatively easy to address but other important sources of uncertainties (e.g. related to the stock recruitment relationship) are less easily tackled. The MSE should test for robustness against the latter uncertainties, where a robust control system is one that still works despite uncertainty.
+
+# Atlantic Wide Tropical Tuna Tagging Programme
+
+The Atlantic Wide Tropical Tuna Tagging Programme (AOTTP) is collecting, collating and analysing tag-recapture data for the three most important tropical Atlantic tuna species (skipjack, big-eye, and yellowfin).  The ambition is to tag at least 120,000 fish across the Atlantic during 5 years, using a range of conventional and electronic tags. All the data collected will be stored in databases maintained by the ICCAT Secretariat, and used to improve the estimation of key parameters needed for input to stock assessments. Fisheries scientists from relevant ICCAT Contracting Parties will be trained in tagging, data collection and the use of tag-recapture data in stock-assessment models.
+
+## Objectives
+
+To contribute to food security and economic growth of the Atlantic coastal states by ensuring sustainable management of tropical tuna resources in the Atlantic Ocean.
+
+To provide the best science available for the adoption of Conservation and Management Measures i.e.
+
++ TACs, Reference Points and Harvest Control Rules for main tropical tuna species,
++ Spatial management measures such as time-are closures
++ FAD moratorium and/or management plans,
++ Development of indicators for neritic tunas
+
+Although fisheries statistics are available for most fleets operating in the Atlantic, they do not provide all the information needed to conduct stock assessments
+
++ Important biological parameters, such as growth or natural mortality are missing or are largely unknown.
++ As a result, the uncertainty in the stock assessments and the associated risks are high.
+
+A specific objective of the AOTTP is therefore to provide evidence based scientific advice to reduce
+risks to the tropical tuna fisheries. This will be achieved through improving estimates of key parameters for stock assessments of growth, natural mortality, movement and stock structure.
+
+### Specific Indicator
+
+A **specific indicator** against which the programme will be judged is the reduction of the uncertainty surrounding the assessment of MSY reference points.
+
 
 ```{r ss, eval=!TRUE}
 library(r4ss)
@@ -109,30 +159,16 @@ save(selASPM,recASPM,ssbASPM,file="/home/laurie/Desktop/flr/tutorials/advice_fra
      compress="xz")
 ```
 
-# Objectives
 
-To contribute to food security and economic growth of the Atlantic coastal states by ensuring sustainable management of tropical tuna resources in the Atlantic Ocean.
+## Stock Assessment Uncertainty
 
-To provide the best science available for the adoption of Conservation and Management Measures i.e.
+Yellowfin is assessed using 4 stock assessment methods, ranging from biomass dynamic with only a few parameters, through age based methods like VPA to integrated statistical models with 100s of parameters.
 
-+ TACs, Reference Points and Harvest Control Rules for main tropical tuna species,
-+ Spatial management measures such as time-are closures
-+ FAD moratorium and/or management plans,
-+ Development of indicators for neritic tunas
+### Vulnerability-at-age
 
-Although fisheries statistics are available for most fleets operating in the Atlantic, they do not provide all the information needed to conduct stock assessments
+One of the main uncertainties is the vulnerability of the different age classes to fishing. Therefore catch composition data (catch by size or age) are commonly used to support stock assessment approaches that explicitly model the age-structure of a fish population. Such modelling may be desirable in cases where there have been strong temporal changes in the size of cohorts and/or changes in the vulnerability of different age classes to fishing (vulnerability-at-age). However these data may be patchy in many stock assessment scenarios, particularly large-scale pelagic populations exploited by numerous fishing fleets. While statistical catch-at-age and catch-at-length assessment models (e.g. Methot and Wetzel 2012, Fournier et al. 1990) do not require complete records of catch composition data, these approaches model vulnerability to fishing explicitly. These vulnerability models often strongly determine management reference points and can be difficult to quantify reliably. An older and simpler approach is Virtual Population Analysis (VPA) that uses complete records of catch-at-age data to reconstruct historical cohorts. Since catch is considered known without error for any VPA model run, the vulnerability of age-classes does not require approximation by a vulnerability model. 
 
-+ Important biological parameters, such as growth or natural mortality are missing or are largely unknown.
-+ As a result, the uncertainty in the stock assessments and the associated risks are high.
-
-A specific objective of the AOTTP is therefore to provide evidence based scientific advice to reduce
-risks to the tropical tuna fisheries. This will be achieved through improving estimates of key parameters for stock assessments of growth, natural mortality, movement and stock structure.
-
-## Specific Indicator
-
-Reduction of the uncertainty surrounding the assessment of MSYs
-
-```{r sel, fi.width=8,fig.height=4}
+```{r sel, fi.width=8,fig.height=6}
 load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/yft.RData")
 load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/ss.RData")
 load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/aspm.RData")
@@ -154,27 +190,10 @@ ggplot(sel)+
   theme_bw()+theme(legend.position="none")
 ```
 
-```{r sel-fig}
-dnormal=FLife:::dnormal
+**Figure `r iFig=iFig+1; iFig`.** Estimates of selection patterns by stock assessment and scenario.
 
-a=FLQuant(seq(0,8,0.1),dimnames=list(age=1:81))
-ggplot(transform(ldply(FLQuants(
-                      "domed"   =dnormal(a,FLPar(a1=5,sl=2.5,sr=.5  )),
-                      "flat"    =dnormal(a,FLPar(a1=5,sl=2.5,sr=5000)),
-                      "juvenile"=dnormal(a,FLPar(a1=2,sl=0.5,sr=0.5 ))),
-       as.data.frame),age=age/10))+
-  geom_line(aes(age,data,col=.id))+
-  theme_bw()+theme(legend.position="bottom")
-```
+### Stock recruitment relationships.
 
-```{r sel2}
-age=FLQuant(1:6,dimnames=list(age=1:6))
-
-sel.pattern=FLQuants("domed"   =dnormal(age,     FLPar(a1=5,sl=2.5,sr=.5  )),
-                     "flat"    =dnormal(age,     FLPar(a1=5,sl=2.5,sr=5000)),
-                     "juvenile"=dnormal(age[1:3],FLPar(a1=2,sl=0.5,sr=0.5 )))
-sel.pattern=llply(sel.pattern,setPlusGroup,plusgroup=40)
-```
 
 ```{r srr,fig.height=6,fig.width=8}
 srr=FLSRs("vpa1"=fmle(as.FLSR(yft[[1]],model="bevholt"),control=list(control=FALSE)))
@@ -194,13 +213,15 @@ sr$cluster=paste("Cluster",c("1","2","1","2","1","2"))[as.numeric(factor(sr$.id)
 ft$method =c("SS","SS","VPA","VPA","ASPM","ASPM")[as.numeric(factor(ft$.id))]
 ft$cluster=paste("Cluster",c("1","2","1","2","1","2"))[as.numeric(factor(ft$.id))]
 
-ggplot(sr)+
+srr=ggplot(sr)+
   geom_point( aes(ssb,rec))+
   geom_line( aes(ssb,hat),data=ft,col="red")+
   facet_wrap(method~cluster,scale="free",ncol=2)+
   xlab("SSB")+ylab("Recruits")+
   theme_bw()
 ```
+
+**Figure `r iFig=iFig+1; iFig`.** Stock recruitment relationships.
 
 
 ```{r eql}
@@ -211,42 +232,27 @@ yftPar=lhPar(FLPar(abbys[,"yft","mean",drop=TRUE]))
 yftEql=lhEql(yftPar,range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40))
 ```
 
+### Equilibrium dynamics.
 
-```{r eqlBiol}
-ggplot(FLQuants(yftEql,"m","mat","catch.wt","catch.sel"))+
+```{r eqlBiol, fig.height=6}
+biol=ggplot(FLQuants(yftEql,"m","mat","catch.wt","catch.sel"))+
   geom_line(aes(age,data))+
   facet_wrap(~qname,scale="free_y")+
   scale_x_continuous(lim=c(1,10))+
   theme_bw()+xlab("Age")+ylab("M-at-age")
 ```
 
-```{r, eqlProd}
+```{r, eqlProd, fig.height=6}
 plot(yftEql)+
   theme_bw()
 ```
 
-```{r m}
-m=propagate(m(yftEql),2)
-m[ac(5:40),,,,,2]=m(yftEql)[ac(1)]
-ggplot(m[ac(1:10)])+
-  geom_line(aes(age,data,col=factor(iter)))+
-  theme_bw()+xlab("Age")+ylab("M-at-age")+
-  theme(legend.position="none")
-```
+**Figure `r iFig=iFig+1; iFig`.** Equilibrium dynamics.
 
-```{r sel3}
-sel=propagate(catch.sel(yftEql),4)
-iter(sel,1)=setPlusGroup(sel.pattern[[1]],40)+setPlusGroup(sel.pattern[[3]],40)/2
-iter(sel,2)=setPlusGroup(sel.pattern[[2]],40)+setPlusGroup(sel.pattern[[3]],40)/2
-iter(sel,3)=setPlusGroup(sel.pattern[[1]],40)+setPlusGroup(sel.pattern[[3]],40)
-iter(sel,4)=setPlusGroup(sel.pattern[[2]],40)+setPlusGroup(sel.pattern[[3]],40)
-ggplot(sel[ac(1:10)])+
-  geom_line(aes(age,data,col=factor(iter)))+
-  theme_bw()+xlab("Age")+ylab("M-at-age")+
-  theme(legend.position="none")
-```
+#### Uncertainty about processes 
+##### Steepness
 
-```{r eql2}
+```{r eql2, fig.height=6}
 eql=FLBRPs(mlply(data.frame(s=c(0.9,0.75)), function(s,par){
   par["s"]=s
   res=lhEql(par)
@@ -257,10 +263,71 @@ plot(eql)+
   theme_bw()
 ```
 
-```{r, structuralUncertainty}
+##### Selection pattern
+
+```{r sel-fig, fig.height=6}
+dnormal=FLife:::dnormal
+
+a=FLQuant(seq(0,8,0.1),dimnames=list(age=1:81))
+selFig=ggplot(transform(ldply(FLQuants(
+                      "domed"   =dnormal(a,FLPar(a1=5,sl=2.5,sr=.5  )),
+                      "flat"    =dnormal(a,FLPar(a1=5,sl=2.5,sr=5000)),
+                      "juvenile"=dnormal(a,FLPar(a1=2,sl=0.5,sr=0.5 ))),
+       as.data.frame),age=age/10))+
+  geom_line(aes(age,data,col=.id))+
+  facet_wrap(~.id)+
+  theme_bw()+theme(legend.position="bottom")+
+  xlab("Age")+ylab("Relative selectivity-at-age")
+```
+
+```{r sel2, fig.height=3}
+age=FLQuant(1:6,dimnames=list(age=1:6))
+
+sel.pattern=FLQuants("domed"   =dnormal(age,     FLPar(a1=5,sl=2.5,sr=.5  )),
+                     "flat"    =dnormal(age,     FLPar(a1=5,sl=2.5,sr=5000)),
+                     "juvenile"=dnormal(age[1:3],FLPar(a1=2,sl=0.5,sr=0.5 )))
+sel.pattern=llply(sel.pattern,setPlusGroup,plusgroup=40)
+save(sel.pattern,file="/home/laurie/Desktop/flr/tutorials/advice_framework/data/sel.RData",compress="xz")
+```
+
+```{r sel3, fig.height=6}
+sel=propagate(catch.sel(yftEql),4)
+iter(sel,1)=setPlusGroup(sel.pattern[[1]],40)+setPlusGroup(sel.pattern[[3]],40)/2
+iter(sel,2)=setPlusGroup(sel.pattern[[2]],40)+setPlusGroup(sel.pattern[[3]],40)/2
+iter(sel,3)=setPlusGroup(sel.pattern[[1]],40)+setPlusGroup(sel.pattern[[3]],40)
+iter(sel,4)=setPlusGroup(sel.pattern[[2]],40)+setPlusGroup(sel.pattern[[3]],40)
+ggplot(sel[ac(1:10)])+
+  geom_line(aes(age,data,col=factor(iter)))+
+  theme_bw()+xlab("Age")+ylab("M-at-age")+
+  theme(legend.position="none")+
+  facet_wrap(~iter)
+```
+
+#### Natural Mortality
+
+```{r m,fig.height=3}
+m=propagate(m(yftEql),2)
+m[ac(5:40),,,,,2]=m(yftEql)[ac(1)]
+ggplot(m[ac(1:10)])+
+  geom_line(aes(age,data,col=factor(iter)))+
+  theme_bw()+xlab("Age")+ylab("M-at-age")+
+  theme(legend.position="none")+
+  facet_grid(.~iter)
+```
+
+
+#### Uncertainty
+
+```{r, structuralUncertainty,fig.height=6}
 vec=list(m=m,sel=sel,s=c(0.9,0.75))
 
-eql=FLBRPs(mlply(expand.grid(m  =1:2,
+fnMSY=function(v,msy,par,eql){
+       
+    params(eql)[c("a","b")]=ab(FLPar("s"=par["s"],
+                                     "v"=v),"bevholt",spr0(eql))[c("a","b")]
+    (computeRefpts(eql)["msy","yield"]-msy)^2}
+
+eqlScen=FLBRPs(mlply(expand.grid(m  =1:2,
                              sel=1:4,
                              s  =1:2), function(m,sel,s,par,vec){
     #print(c(m,sel,s))                
@@ -271,79 +338,88 @@ eql=FLBRPs(mlply(expand.grid(m  =1:2,
             
     refpts(res)=computeRefpts(res)
             
-    fn=function(v,msy){
-       
-          params(res)[c("a","b")]=ab(FLPar("s"=par["s"],
-                                           "v"=v),"bevholt",spr0(res))[c("a","b")]
-          (computeRefpts(res)["msy","yield"]-msy)^2}
-    
-     params(res)[c("a","b")]=ab(FLPar("s"=par["s"],
-                                      "v"=optimise(fn,c(0,5000),200)$minimum),
-                                      "bevholt",spr0(res))[c("a","b")]
+    params(res)[c("a","b")]=ab(FLPar("s"=par["s"],
+                                     "v"=optimise(fnMSY,c(0,5000),100,par,res)$minimum),
+                                     "bevholt",spr0(res))[c("a","b")]
     
     res=brp(res)
     fbar(res)=seq(0,1,length.out=101)*refpts(res)["crash","harvest"]
     refpts(res)=refpts(res)[c("msy","crash")]
     res},par=yftPar,vec=vec))
 
-plot(eql)+
+plot(eqlScen)+
   theme_bw()+
-  theme(legend.position="none")
+  theme(legend.position="none")+
+  xlab("")+ylab("")
 
-save(eql,file="/home/laurie/Desktop/flr/tutorials/advice_framework/data/eql.RData")
+scen=expand.grid(m  =c("Lorenzen","Scenescence"),
+                 sel=c("Dome","Flat","Dome & Juvenile","Flat & Juvenile"),
+                 s  =c(0.9,0.75))
+
+save(eqlScen,scen,file="/home/laurie/Desktop/flr/tutorials/advice_framework/data/eql.RData",compress="xz")
 ```
 
-```{r, valueUcertainty}
+#### Value uncertainty
+
+```{r, valueUncertainty}
+library(FLBRP)
+library(FLife)
+library(numDeriv)
+
+load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/abbys.RData")
+yftPar=lhPar(FLPar(abbys[,"yft","mean",drop=TRUE]))
+yftPar["m1"]=0.55
+
 logistic=FLife:::logistic
 vonB    =FLife:::vonB
 pms=c("linf","k","lmat","m1")
-yftPar[ "s"]=0.9
-yftPar["m1"]=0.55
 
 eql=lhEql(yftPar,
           mat  =logistic,
-          m    =function(length,params) exp(params["m1"])*(length^-1.61)%*%(params["linf"]^1.44)%*%params["k"],
+          m    =function(length,params)  
+                   exp(params["m1"])*(length^-1.61)%*%(params["linf"]^1.44)%*%params["k"],
           range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40))
-msy=computeRefpts(eql)["msy",1:5]
+landings.sel(eql)=landings.sel(eqlScen[[1]])
+yftPar["v"]=optimise(fnMSY,c(0,5000),100,par=yftPar,eql=eql)$minimum
+params(eql)[c("a","b")]=ab(FLPar("s"=yftPar["s"],
+                                 "v"=yftPar["v"]),
+                                 "bevholt",spr0(eql))[c("a","b")]
+eql=brp(eql)
+msy=refpts(eql)["msy",1:5]
 
-fn=function(x,params){
+plot(eql)
+
+fnJac<-function(x,params){
   params[pms]=x
-  params["a50"]=vonB(params=yftPar,length=params["lmat"])
-  
+  params["a50"]=vonB(params=params,length=params["lmat"])
+
   eql=lhEql(params,
             mat  =logistic,
             m    =function(length,params) exp(params["m1"])*(length^-1.61)%*%(params["linf"]^1.44)%*%params["k"],
-            range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40),msy="f0.1")
-  eql=brp(eql)
+            range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40))
+
+  landings.sel(eql)=landings.sel(eqlScen[[1]])
   
   computeRefpts(eql)["msy",1:5]}
 
-jac=jacobian(fn,yftPar[pms,drop=T],params=yftPar)
+jac=jacobian(fnJac,yftPar[pms,drop=T],params=yftPar)
 
 dimnames(jac)=list(refpt =c("harvest","yield","rec","biomass","ssb"),
                    params=pms)
-var=abbys[,"yft","var"]/(abbys[,"yft","n"]-1)
-
+se=(abbys[,"yft","var"]/(abbys[,"yft","n"]-1))^0.5
 
 cor=array(0,dim=rep(length(pms),2),dimnames=list(params=pms,params=pms))
 diag(cor)=1
-var=diag(cor)
-var[pms]=(yftPar[pms]*0.3)^2
+var=(yftPar[pms]*0.1)^2
+cov=cor2cov(cor,var[pms,drop=TRUE])
 
-cov=cor2cov(cor,var)
+save(cov,jac,file="/home/laurie/Desktop/flr/tutorials/advice_framework/data/covjac.RData",compress="xz")
+```
 
-fnCV=function(ref="biomass",cv=cov,jc=jac){
-  hes=jc[ref,]%*%t(jc[ref,])
-  dimnames(hes)=list(params=pms,params=pms)
-  ((hes*cv)^0.5)/c(msy[,ref])}
 
-rev(sort(diag(fnCV("biomass"))))
-rev(sort(diag(fnCV("ssb"))))
-rev(sort(diag(fnCV("harvest"))))
-rev(sort(diag(fnCV("yield"))))
-
-fnP=function(ref,p,msy,cov,hes=jac[ref,]%*%t(jac[ref,])){
-       qnorm(p,msy[,ref],sum(hes*cov)^0.5)/msy[,ref]}
+```{r cov2, eval=FALSE}
+fnP=function(ref,p,msy,cv,jc=jac[ref,]){
+       qnorm(p,msy[,ref],(t(jc)%*%cv%*%jc)^0.5)/msy[,ref]}
 
 cv2=cov
 diag(cv2)=diag(cv2)/4
@@ -357,74 +433,124 @@ fnP("yield",  p=.2,msy,cov)
 fnP("yield",  p=.2,msy,cv2)
 ```
 
-
 ```{r cov,eval=FALSE}
-jac["harvest"]%*%t(jac["ssb"])*cov
+library(mvtnorm)
+library(ggplot2)
+library(kobe)
 
+cv2ellipse<-function(cv,n=1e3){
+  z  =rep(NA,n)
+  p90=rep(NA,n)
+  x  =rmvnorm(n, mean=c(0, 0), cv)
+  c90=qchisq(.90, df=2) 
+  
+  for(i in 1:1e3){
+    z[  i]=x[i,] %*% solve(cv, x[i, ])
+    p90[i]=(z[i] < c90)}
+  
+  res=data.frame(x, z, p90)
+
+  names(res)[1:2]=c("x","y")
+  
+  res}
+
+cv=matrix(NA,2,2)
+cv[1,1]=t(jac["ssb",])%*%cov%*%jac["ssb",]
+cv[1,2]=t(jac["harvest",])%*%jac["ssb",]
+cv[2,1]=t(jac["harvest",])%*%jac["ssb",]
+cv[2,2]=t(jac["harvest",])%*%jac["harvest",]
+
+dat=transform(cv2ellipse(cv),stock  =(x+msy[,"ssb"])/msy[,"ssb",],
+                             harvest=(y+msy[,"harvest",])/msy[,"harvest"])
+
+kobePhase(dat)+
+  geom_point(aes(1,1))+
+  stat_ellipse(aes(stock, harvest), type = "norm")
 ```
 
 
 ### Reference points based on uncertainty
-```{r, eval=!TRUE}
-pms=c("linf","k","t0","a","b","lmat","s","bg")
-yftPar["s"]=0.9
-
-eql=lhEql(yftPar,
-          mat=logistic,
-          range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40))
-msy=computeRefpts(eql)["msy",1:5]
-
-fn=function(x,params){
-  params[pms]=x
-  params["a50"]=vonB(params=yftPar,length=params["lmat"])
-  
-  eql=lhEql(params,
-            mat=logistic,
-            range=c(min=1,max=40,minfbar=1,maxfbar=40,plusgroup=40),msy="f0.1")
-  eql=brp(eql)
-  
-  computeRefpts(eql)["msy",1:5]}
-
-jac=jacobian(fn,yftPar[pms,drop=T],params=yftPar)
-
-dimnames(jac)=list(refpt =c("harvest","yield","rec","biomass","ssb"),
-                   params=pms)
-var=abbys[,"yft","var"]/(abbys[,"yft","n"]-1)
-
-
-cor=array(0,dim=rep(length(pms),2),dimnames=list(params=pms,params=pms))
-diag(cor)=1
-var=diag(cor)
-var[pms[pms%in%dimnames(abbys)$params]]=(abbys[,"yft","var"])*.5 #/(abbys[,"yft","n"]-1)
-var[pms[!pms%in%dimnames(abbys)$params]]=(yftPar[pms[!pms%in%dimnames(abbys)$params]]*.0)^2
-
-cov=cor2cov(cor,var)
-
-fn=function(ref="biomass",cv=cov,jc=jac){
-  hes=jc[ref,]%*%t(jc[ref,])
-  dimnames(hes)=list(params=pms,params=pms)
-  ((hes*cv)^0.5)/c(msy[,ref])}
-rev(sort(diag(fn("biomass"))))
-rev(sort(diag(fn("ssb"))))
-rev(sort(diag(fn("harvest"))))
-rev(sort(diag(fn("yield"))))
-
-ref="harvest"
-hes=jac[ref,]%*%t(jac[ref,])
-qnorm(0.20,msy[,ref],sum(hes[-c(3,5),-c(3,5)]*cov[-c(3,5),-c(3,5)])^0.5)/msy[,ref]
-```
-
-
-```{r kpp1}
-```
 
 
 # Excercise
 
 Based on shiny apps
 
-## 
 
+```{r}
+load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/covjac.RData")
+load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/eql.RData")
+
+rfpt=ldply(eqlScen, function(x) as.data.frame(refpts(x)[1,c(1:2,4:5)]))[,-c(4,6)]
+rfpt=cast(rfpt,m+sel+s~quantity,value="data")
+rfpt=cbind(rfpt,crash=ldply(eqlScen, function(x) as.data.frame(refpts(x)[2,1]))[,7])
+names(rfpt)[c(4:5,7)]=c("fbar","catch","stock")
+
+crv=ldply(eqlScen, function(x) model.frame(FLQuants(x,"fbar","ssb","stock","catch"),drop=T))
+
+save(rfpt,crv,file="/home/laurie/Desktop/flr/tutorials/advice_framework/data/crvRef.RData",compress="xz")
+```
+
+```{r}
+m.=1;sel.=1;s.=1
+
+ggplot(crv,aes(ssb,catch,group=paste(m,sel,s)))+
+  theme_bw()+
+  geom_line(col="grey90")+
+  geom_point(aes(ssb,catch),data=rfpt,size=2.5,col="grey75",fill="grey90",shape=21)+
+  geom_point(aes(ssb,catch),data=subset(rfpt,m==m.&sel==sel.&s==s.),size=2.5,shape=21,fill="black",col="grey90")+
+  geom_line(aes(ssb,catch),data=subset(crv,m==m.&sel==sel.&s==s.))+
+  geom_point(aes(ssb,catch),data=rfpt,size=2.5,col="grey75",fill="grey90",shape=21)+
+  geom_point(aes(ssb,catch),data=subset(rfpt,m==m.&sel==sel.&s==s.),size=3.5,shape=21,fill="black",col="grey90")+
+  xlab("SSB")+ylab("Yield")
+```
+
+**Figure `r iFig=iFig+1; iFig`.** Yield v SSB.
+
+```{r}
+ggplot(crv,aes(fbar,catch,group=paste(m,sel,s)))+
+  theme_bw()+
+  geom_line(col="grey90")+
+  geom_line( aes(fbar,catch),data=subset(crv,m==m.&sel==sel.&s==s.))+
+  geom_point(aes(fbar,catch),data=rfpt,size=2.5,col="grey75",fill="grey90",shape=21)+
+  geom_point(aes(fbar,catch),data=subset(rfpt,m==m.&sel==sel.&s==s.),size=3.5,shape=21,fill="black",col="grey90")+
+  geom_point(aes(crash,0),data=rfpt,size=2.5,col="grey75",fill="grey90",shape=21)+
+  geom_point(aes(crash,0),data=subset(rfpt,m==m.&sel==sel.&s==s.),size=3.5,shape=21,fill="black",col="grey90")+
+  xlab("F")+ylab("Yield")
+```
+
+**Figure `r iFig=iFig+1; iFig`.** Yield v F.
+
+```{r}
+load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/covjac.RData")
+load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/eql.RData")
+load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/crvRef.RData")
+
+plotPDF<-function(linf=1,k=1,lmat=1,m1=1,
+                  mScn=1:2,selScn=1:4,sScn=1:2){
+  ssbPDF<-function(linf=1,k=1,lmat=1,m1=1,cv=cov,jc=jac,rf=rfpt){
+     
+    diag(cv)=diag(cv)*c(linf,k,lmat,m1)
+    sigma=(t(jc["ssb",])%*%cv%*%jc["ssb",])^0.5
+    ddply(rf,.(m,sel,s), function(x,sigma)
+          data.frame(value=rnorm(100,mean=x$ssb,sd=sigma)),sigma=sigma)}
+  
+  wt =dim(rfpt)[1] 
+  rf =subset(rfpt,m%in%mScn&sel%in%selScn&s%in%sScn)
+  wt =wt/dim(rf)[1]
+  dat=ssbPDF(linf,k,lmat,m1,rf=rf)
+
+  p=ggplot(dat,aes(x=value,weight=wt,group=paste(m,sel,s),fill=paste(m,sel,s)))+
+    geom_density(col="grey",alpha=.5,position="stack")+
+    theme_bw()+
+    theme(legend.position="none")+
+    scale_x_continuous(limits=c(0,200))
+    scale_y_continuous(limits=c(0,20))
+  
+  print(p)}
+
+plotPDF(1,1,1,1,mScn=2,selScn=1:2)
+```
 
 # References
 
