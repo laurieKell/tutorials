@@ -552,6 +552,8 @@ plotPDF<-function(linf=1,k=1,lmat=1,m1=1,
 plotPDF(1,1,1,1,mScn=2,selScn=1:2)
 ```
 
+**Figure `r iFig=iFig+1; iFig`.** Distribution of $B_{MSY}$.
+
 # References
 
 <!-- pb=FLBRP(ple4) -->

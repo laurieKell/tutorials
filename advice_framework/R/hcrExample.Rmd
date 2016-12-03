@@ -1,0 +1,373 @@
+---
+title: "Value-of-Infomation"
+author: "Laurence Kell"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: rmarkdown:::html_document
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{kobe}
+  \DeclareUnicodeCharacter{00A0}{ }
+  %\VignetteEncoding{UTF-8}
+tags: FLPKG FLR
+license: Creative Commons Attribution-ShareAlike 4.0 International
+---
+
+
+```{r knitr, eval=TRUE, echo=FALSE}
+library(knitr)
+
+knitr::opts_chunk$set(echo = FALSE)
+
+opts_chunk$set(comment=NA, fig.width =10, 
+                           fig.height=3.5,
+                           fig.path  ="../tex/",
+                           warning=FALSE, 
+                           message=FALSE, 
+                           error  =FALSE, 
+                           echo   =FALSE,
+                           cache  =TRUE)
+```
+
+
+```{r init,cache=FALSE}
+library(FLCore)
+library(biodyn)
+library(kobe)
+library(mpb)
+library(ggplotFL)
+```
+
+
+```{r}
+## simulate HCRs, annual, tri-annula, F bound, TAC bound
+bd=mpb:::sim()
+for (i in seq(29,50,1))
+  bd=fwd(bd,harvest=hcr(bd,yr=i,hyr=i+1))
+sims=biodyns("1"=bd)
+
+bd=mpb:::sim()
+for (i in seq(29,50,3))
+  bd=fwd(bd,harvest=hcr(bd,yr=i,hyr=i+1:3))
+sims[["3"]]=bd
+
+bd=mpb:::sim()
+for (i in seq(29,50,3))
+  bd=fwd(bd,harvest=hcr(bd,yr=i,byr=i-1,hyr=i+1:3,bndF=c(.8,1.2)))
+sims[["bound F"]]=bd
+
+bd=mpb:::sim()
+for (i in seq(29,50,3))
+  bd=fwd(bd,catch=hcr(bd,yr=i,byr=i-1,hyr=i+1:3,tac=T,bndTac=c(0.8,1.2)))
+sims[["bound TAC"]]=bd
+```
+
+```{r hcr-ts,fig.width=6,fig.height=8}
+p.=plot(sims[c(1,3)])+
+  theme_bw(16)+theme(legend.position="bottom")+
+  scale_colour_manual(values=c("cyan4","grey10"),
+                      labels=c("HCR","10% Constraint on Effort"))+
+  guides(col=guide_legend(title=NULL))+
+  scale_x_continuous(limits=c(25,50),breaks=seq(30,50,10),labels=seq(30,50,10))+
+  scale_y_continuous(breaks=NULL)
+
+p.$data=transform(p.$data,qname=factor(qname,levels=c("Harvest","Yield","Stock")))
+p.+geom_hline(aes(yintercept=X1),data=
+                cbind("qname"=c("Yield","Harvest","Stock"),data.frame(refpts(bd))),col="red")
+```
+
+```{r hcrI,fig.width=5,fig.height=5,cache=FALSE}
+kb=ldply(sims[c(1)],function(x,sd=.1)
+  model.frame(mcf(FLQuants(stock  =rlnorm(100,log(stock(  x)%/%bmsy(x)),sd),
+                           harvest=rlnorm(100,log(harvest(x)%/%fmsy(x)),sd)))))
+kb=subset(kb,year%in% 29:50)
+
+pt=ldply(sims[c(1)],function(x)
+  model.frame(mcf(FLQuants(stock  =stock(  x)%/%bmsy(x),
+                           harvest=harvest(x)%/%fmsy(x)))))
+pt =subset(pt,year%in% 29:50)
+pt.=ddply(pt,.(year,.id),with,data.frame(stock=median(stock),harvest=median(harvest)))
+
+for (i in 29:40)
+  print(kobePhase(subset(kb,year%in%i)xlim=c(2,0),ylim=c(0,2))+
+      geom_line(aes(stock,harvest),data=plotHcr(bd),col="brown",size=1.5)+
+      ggtitle(paste("Year",i-29)) +
+      theme(legend.position="none",plot.background=element_rect(fill="transparent",colour=NA),
+            plot.title = element_text(lineheight=.8, face="italic"))+
+      xlim(0,2)+ylim(0,2)+
+      geom_point(aes(stock,harvest,col=.id,fill=.id), shape=21, size = 3) + 
+      geom_point(aes(stock,harvest,group=.id,fill=.id),col="black",
+                 data=subset(pt.,year==i),shape=21,size=5)+
+      geom_path( aes(stock,harvest,col=.id,group=.id) ,data=subset(pt, year<=i),size=1)+
+      scale_fill_manual(  values=c("cyan1","green","red","yellow")) + 
+      scale_colour_manual(values=c("cyan4","green","red","yellow")))
+```
+
+
+```{r hcrII,fig.width=5,fig.height=5,cache=TRUE}
+kb=ldply(sims[c(1,3)],function(x,sd=.1)
+  model.frame(mcf(FLQuants(stock  =rlnorm(100,log(stock(  x)%/%bmsy(x)),sd),
+                           harvest=rlnorm(100,log(harvest(x)%/%fmsy(x)),sd)))))
+kb=subset(kb,year%in% 29:50)
+
+pt=ldply(sims[c(1,3)],function(x)
+  model.frame(mcf(FLQuants(stock  =stock(  x)%/%bmsy(x),
+                           harvest=harvest(x)%/%fmsy(x)))))
+pt =subset(pt,year%in% 29:50)
+pt.=ddply(pt,.(year,.id),with,data.frame(stock=median(stock),harvest=median(harvest)))
+
+for (i in 29:40)
+  print(kobePhase(subset(kb,year%in%i)xlim=c(2,0),ylim=c(0,2))+
+      geom_line(aes(stock,harvest),data=plotHcr(bd),col="brown",size=1.5)+
+      ggtitle(paste("Year",i-29)) +
+      theme(legend.position="none",plot.background=element_rect(fill="transparent",colour=NA),
+            plot.title = element_text(lineheight=.8, face="italic"))+
+      xlim(0,2)+ylim(0,2)+
+      geom_point(aes(stock,harvest,col=.id,fill=.id,size=.id), shape=21) + 
+      geom_point(aes(stock,harvest,fill=.id,group=.id),data=subset(pt.,year==i),shape=21,col="black",size=5)+
+      geom_path( aes(stock,harvest,col=.id,group=.id) ,data=subset(pt, year<=i),size=1)+
+      scale_fill_manual(  values=c("cyan1","grey90","green","red","yellow")) + 
+      scale_size_manual(  values=c(1,3)) + 
+      scale_colour_manual(values=c("cyan4","grey20","green","red","yellow")))
+```
+
+```{r hcr-ts-mc,fig.width=8,fig.height=8}
+pe=rlnorm(100,FLQuant(0,dimnames=list(year=1:50)),0.5)
+sims[[1]]=fwd(sims[[1]],harvest=harvest(sims[[1]])[,ac(1:50)],pe=pe)
+sims[[3]]=fwd(sims[[3]],harvest=harvest(sims[[3]])[,ac(1:50)],pe=pe)
+p.=plot(sims[c(1,3)])+
+  theme_bw(14)+theme(legend.position="none")+
+  scale_colour_manual(values=c("cyan4","grey10"),
+                      labels=c("HCR","10% Constraint on Effort"))+
+  guides(col=guide_legend(title=NULL))+
+  scale_x_continuous(limits=c(27,50),breaks=c(30,40,50),labels=c(1,11,21))+
+  scale_y_continuous(breaks=NULL)
+
+p.$data=transform(p.$data,qname=factor(qname,levels=c("Harvest","Yield","Stock")))
+p.+geom_hline(aes(yintercept=X1),data=
+                cbind("qname"=c("Yield","Harvest","Stock"),data.frame(refpts(bd))),col="red")
+```
+
+```{r doug,cache=FALSE}
+#### Dougs Example
+dougEx=function(stock  =FLQuant(100000,dimnames=list(year=0:31,iter=1)),
+                obs    =rlnorm( 1,     stock*0, 0.5),
+                incr   =0.05,
+                theft  =30000,
+                theftYr=5,
+                constant=FALSE,
+                alpha   =.2){
+
+  catch =propagate(stock*incr,dims(obs)$iter)
+  stock =propagate(stock,     dims(obs)$iter)
+    
+  for (i in as.numeric(dimnames(stock)$year[c(-1,-dims(stock)$year)])){
+    obs[,ac(i)]=stock[,ac(i)]*obs[,ac(i)]
+    
+    if (!constant)
+      catch[,ac(i)]=((obs[,ac(i)]*incr)*alpha)+(catch[,ac(i-1)]*(1-alpha))
+      
+    stock[,ac(i+1)]=stock[,ac(i)]*(1+incr)-catch[,ac(i)]-ifelse(i==theftYr,theft,0)
+    }
+
+  maxYr=as.numeric(rev(dimnames(stock)$year)[1])-1
+  return(FLQuants(stock=window(stock,end=maxYr),
+                  obs  =window(obs,  end=maxYr),
+                  catch=window(catch,end=maxYr)))}
+
+tmp1=dougEx(incr=.05,alpha=0,
+           obs =rlnorm(100,FLQuant(0,dimnames=list(year=0:30,iter=1)),0.5))
+tmp2=dougEx(incr=.05,alpha=0,theft=0,
+            obs =rlnorm(100,FLQuant(0,dimnames=list(year=0:30,iter=1)),0.5))
+fig1=rbind(cbind("Scenario"="A",   as.data.frame(tmp1)),
+           cbind("Scenario"="B",as.data.frame(tmp2)))
+
+for (i in 5:30)
+  print(ggplot()+
+  geom_line(aes(year,data),
+            data=subset(fig1, year<=i&iter==1&qname=="obs"),col="blue",size=1.5)+
+  facet_grid(.~Scenario)+
+  theme_bw(16)+
+  xlim(c(0,30))+xlab("Year")+ylab("")+
+  scale_y_continuous(lim=c(0,400000),breaks=NULL))
+
+ggplot()+
+  geom_line(aes(year,data),
+            data=subset(fig1, iter==1&qname=="stock"),col="brown",size=1.5)+
+  geom_line(aes(year,data),
+            data=subset(fig1, iter==1&qname=="obs"),col="blue",size=1.5)+
+  facet_grid(.~Scenario)+
+  theme_bw(16)+
+  xlim(c(0,30))+xlab("Year")+ylab("")+
+  scale_y_continuous(lim=c(0,400000),breaks=NULL)
+```
+
+```{r doug2}
+obs =rlnorm(100,FLQuant(0,dimnames=list(year=0:30,iter=1)),0.5)
+tmp1=dougEx(incr=.05,alpha=0,          obs=obs)
+tmp2=dougEx(incr=.05,alpha=0,  theft=0,obs=obs)
+tmp3=dougEx(incr=.05,alpha=0.2,        obs=obs)
+tmp4=dougEx(incr=.05,alpha=0.2,theft=0,obs=obs)
+tmp5=dougEx(incr=.05,alpha=1,          obs=obs)
+tmp6=dougEx(incr=.05,alpha=1,  theft=0,obs=obs)
+
+fig2=rbind(cbind(MP="I",  Theft=   "Regime Shift",as.data.frame(tmp1)),
+           cbind(MP="I",  Theft="No Regime Shift",as.data.frame(tmp2)),
+           cbind(MP="II", Theft=   "Regime Shift",as.data.frame(tmp5)),
+           cbind(MP="II", Theft="No Regime Shift",as.data.frame(tmp6)),
+           cbind(MP="III",Theft=   "Regime Shift",as.data.frame(tmp3)),
+           cbind(MP="III",Theft="No Regime Shift",as.data.frame(tmp4)))
+
+p2=ddply(fig2,.(MP,Theft,year,qname), with, quantile(data))
+```
+
+```{r mp1,fig.width=8,fig.height=6}
+ggplot(subset(fig2,qname=="stock"&iter%in%1))+
+  geom_line(aes(year,data,col=iter),size=1.5)+
+  facet_grid(MP~Theft)+
+  theme_bw(14)+
+  xlab("Year")+ylab("Stock")+
+  scale_y_continuous(breaks=NULL)
+```
+
+```{r mp2,fig.width=8,fig.height=6}
+ggplot(subset(fig2,qname=="catch"&iter%in%1))+
+  geom_line(aes(year,data,col=iter),size=1.5)+
+  facet_grid(MP~Theft)+
+  theme_bw(14)+theme(legend.position="none")+xlab("Year")+ylab("Catch")+
+  scale_y_continuous(breaks=NULL)
+```
+
+```{r mp3,fig.width=8,fig.height=6}
+ggplot(subset(p2,qname=="stock"))+
+  geom_ribbon(aes(x=year, ymin=`25%`, ymax=`75%`), fill="red", alpha = .25) +
+  geom_ribbon(aes(x=year, ymin=`0%`, ymax=`100%`), fill="red", alpha = .10) +
+  geom_line(aes(year,data,col=iter),size=.15,
+            data=subset(fig2,qname=="stock"&iter%in%1:6))+
+  geom_line(  aes(x=year, y=`50%`), col="red",size=1.5) +
+  facet_grid(MP~Theft)+
+  theme_bw(14)+theme(legend.position="none")+
+  xlab("Year")+ylab("Stock")+
+  scale_y_continuous(breaks=NULL)
+```
+
+```{r mp4,fig.width=8,fig.height=6}
+ggplot(subset(p2,qname=="catch"))+
+  geom_ribbon(aes(x=year, ymin=`25%`, ymax=`75%`), fill="red", alpha = .25) +
+  geom_ribbon(aes(x=year, ymin=`0%`, ymax=`100%`), fill="red", alpha = .10) +
+  geom_line(aes(year,data,col=iter),size=.15,
+            data=subset(fig2,qname=="catch"&iter%in%1:6))+
+  geom_line(  aes(x=year, y=`50%`), col="red",size=1.5) +
+  facet_grid(MP~Theft)+
+  theme_bw(14)+theme(legend.position="none")+
+  xlab("Year")+ylab("Catch")+
+  scale_y_continuous(breaks=NULL)
+```
+
+```{r mp5,fig.width=8,fig.height=6}
+ggplot(subset(p2,qname=="stock"))+
+  geom_ribbon(aes(x=year, ymin=`25%`, ymax=`75%`), fill="red", alpha = .25) +
+  geom_ribbon(aes(x=year, ymin=`0%`, ymax=`100%`), fill="red", alpha = .10) +
+  geom_line(aes(year,data,col=iter),size=1,
+            data=subset(fig2,qname=="stock"&iter%in%1:6))+
+  geom_line(  aes(x=year, y=`50%`), col="red",size=.3) +
+  facet_grid(MP~Theft)+
+  theme_bw(14)+theme(legend.position="none")+
+  xlab("Year")+ylab("Stock")+
+  scale_y_continuous(breaks=NULL)
+```
+
+```{r mp6,fig.width=8,fig.height=6}
+ggplot(subset(p2,qname=="catch"))+
+  geom_ribbon(aes(x=year, ymin=`25%`, ymax=`75%`), fill="red", alpha = .25) +
+  geom_ribbon(aes(x=year, ymin=`0%`, ymax=`100%`), fill="red", alpha = .10) +
+  geom_line(aes(year,data,col=iter),size=1,
+            data=subset(fig2,qname=="catch"&iter%in%1:6))+
+  geom_line(  aes(x=year, y=`50%`), col="red",size=.3) +
+  facet_grid(MP~Theft)+
+  theme_bw(14)+theme(legend.position="none")+
+  scale_y_continuous(breaks=NULL)
+```
+
+
+```{r scen,fig.width=6,fig.height=5}
+dirInp="/home/laurie/Desktop/kobe/inputs/albn/2013/aspic"
+scens =paste("run",1:7,"/aspic.bio",sep="")
+file  =paste(dirInp, scens, sep="/")
+
+alb=mdply(file, function(run) model.frame(mcf(readAspic(run)[c("stock","harvest")]),drop=T))
+names(alb)[1]="run"
+
+ggplot(subset(alb,year==2011))+
+  geom_density(aes(stock,group=run,fill=run),col="grey",alpha=.4)+
+  theme_bw(14)+theme(legend.position="none")+
+  xlab("Stock Biomass")+ylab("Density")
+```
+
+```{r scen2,fig.width=6,fig.height=6}
+dirInp="/home/laurie/Desktop/kobe/inputs/bfte/2012/vpa"
+scn=expand.grid(Catch         =c("inflated","reported"),
+                Recruitment   =c("low","med","high"),
+                stringsAsFactors=FALSE)
+file=mdply(scn,function(Catch,Recruitment) 
+  paste(dirInp,Catch,Recruitment,sep="/"))[,3]
+
+bft=kobe:::kobe2box(file)
+names(bft)[1]="run"
+bft=transform(bft,year=as.numeric(year)+1949)
+bft=cbind(bft,scn[bft$run,])
+
+ggplot(subset(bft,year==2012))+
+  geom_density(aes(stock,group=run,fill=Recruitment,col=Catch),alpha=.4,size=1.25)+
+  theme_bw(14)+theme(legend.position="none")+
+  xlab("Stock Biomass")+ylab("Density")
+```
+
+```{r,eval=FALSE}
+dirInp="/home/laurie/Desktop/ICCAT/SCRS/kobe/Inputs/albn/2013/aspic"
+scens =paste("run",1:7,"/aspic.bio",sep="")
+file  =paste(dirInp, scens, sep="/")
+
+alb=mdply(file, function(run) model.frame(mcf(readAspic(run)[c("stock","harvest")]),drop=T))
+names(alb)[1]="run"
+
+kobePhase(subset(alb,year==2011))+
+  geom_point(aes(stock,harvest,col=run),size=1.75)+
+  scale_x_continuous(limits=c(0,3))+
+  scale_y_continuous(limits=c(0,3))+
+  ggtitle(paste("MSY Proxy")) +
+  theme(16,legend.position="none")
+```
+
+```{r,eval=FALSE}
+ggplot(subset(alb,year==2011))+
+  geom_density(aes(stock,group=run,fill=run),col="grey",alpha=.4)+
+  theme(legend.position="bottom")+
+  xlab("Stock Biomass")+ylab("Density")
+```
+
+```{r,eval=FALSE}
+dirInp="/home/laurie/Desktop/ICCAT/SCRS/kobe/Inputs/bfte/2012/vpa"
+scn=expand.grid(Catch         =c("inflated","reported"),
+                Recruitment   =c("low","med","high"),
+                stringsAsFactors=FALSE)
+file=mdply(scn,function(Catch,Recruitment) 
+  paste(dirInp,Catch,Recruitment,sep="/"))[,3]
+
+bft=kobe:::kobe2box(file)
+names(bft)[1]="run"
+bft=transform(bft,year=as.numeric(year)+1949)
+bft=cbind(bft,scn[bft$run,])
+
+kobePhase(subset(bft,year==2012))+
+  geom_point(aes(stock,harvest,col=run),size=1.75)+
+  scale_x_continuous(limits=c(0,3))+
+  scale_y_continuous(limits=c(0,3))+
+   theme(16,legend.position="none")
+```
+
+```{r,eval=FALSE}
+ggplot(subset(bft,year==2012))+
+  geom_density(aes(stock,group=run,fill=Recruitment,col=Catch),alpha=.4,size=1.25)+
+  theme(legend.position="bottom")+
+  xlab("Stock Biomass")+ylab("Density")
+```

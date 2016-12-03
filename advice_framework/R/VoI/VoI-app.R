@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library(plyr)
 library(ggplot2)
 
 load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/covjac.RData")
