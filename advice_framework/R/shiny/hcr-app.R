@@ -1,12 +1,10 @@
 library(shiny)
 library(ggplot2)
-
-
-library(ggplot2)
 library(mpb)
+library(reshape)
 library(kobe)
 library(plyr)
-library(reshape)
+library(grid)
 
 bd=mpb:::sim(harvest=FLQuant(seq(0,1.5,length.out=40))*0.25)
 

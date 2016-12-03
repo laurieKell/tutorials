@@ -1,11 +1,3 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
 
 library(shiny)
 library(plyr)
@@ -46,7 +38,6 @@ plotPDF<-function(linf=1,k=1,lmat=1,m1=1,
 #plotPDF(1,1,1,1,mScn=2,selScn=1:2)
 
 
-# Define UI for application that draws a histogram
 ui <- shinyUI(fluidPage(
    
    # Application title
@@ -73,7 +64,6 @@ ui <- shinyUI(fluidPage(
 ))
 
 
-# Define server logic required to draw a histogram
 server <- shinyServer(function(input, output) {
    
    output$distPlot <- renderPlot({
