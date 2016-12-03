@@ -170,9 +170,16 @@ From all length measurements, a length-frequency distribution can be made.
 
 **Figure `r iFig=iFig+1; iFig`.** Age length keys for a small pelagic fish.
 
+However, it is far more common in tRFMOs to not have regular catch data at hand, and only have access to length-frequency data. To convert this data to ages, one needs to 'slice' the length-frequency data. This means that the total length-frequency is split into ages which allows for age-structured assessment models to be applied. 
 
-![](../tex/cohort.png)
-**Figure `r iFig=iFig+1; iFig`.** Cohort tracking through catch-at-age.
+![](../tex/LF.png)
+
+**Figure `r iFig=iFig+1; iFig`.** Length frequency data by decade.
+
+![](../tex/LFsliced.png)
+
+**Figure `r iFig=iFig+1; iFig`.** Length frequency data sliced to extract ages from. 
+
 
 ![](../tex/figures09.png)
 
