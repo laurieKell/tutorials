@@ -1,0 +1,160 @@
+---
+title: "Management Strategy Evaluation"
+subtitle: "An Example"
+author: "Laurence Kell"
+output: ioslides_presentation
+---
+
+
+```{r knitr, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(knitr)
+
+opts_chunk$set(comment=NA, 
+               warning=FALSE, 
+               message=FALSE, 
+               error  =FALSE, 
+               echo   =FALSE, 
+               fig.width =8, 
+               fig.height=5,
+               fig.path  ="../tex/mse-",
+               cache     =TRUE)
+
+iFig=0
+iTab=0
+```
+
+```{r libload}
+library(mpb)
+library(FLBRP)
+library(kobe)
+
+load("/home/laurie/Desktop/flr/tutorials/advice_framework/data/eql.RData")
+```
+
+```{r conditioning, echo=FALSE}
+eql      =eqlScen[[1]]
+fbar(eql)=c(seq(0,1.5,length.out=51),rep(1.5,50))*refpts(eql)["msy","harvest"]
+
+om       =mpb:::FLStock2biodyn(fwd(eql))
+params(om)["b0"]=1
+om=propagate(mpb:::fwd(om,catch=catch(om)),100)
+
+mp=om
+
+set.seed(1234)
+
+pe=rlnorm(100,FLQuant(0,dimnames=list(year=1:101)),.2)
+
+source('~/Desktop/flr/mpb/R/biodyn-mse.R')
+
+res=demo(om,mp,pe,start=50,end=90,silent=TRUE)
+```
+
+## Comparison of Operating Model and Management Procedure
+
+```{r om-mp}
+plot(res)+
+  scale_x_continuous(limits=c(1,80))+
+  theme_bw()
+```
+
+## Kobe Phase Plot
+
+```{r kobe}
+kobePhase(subset(kobe(res[[1]]),year%in%60:80))+
+  geom_point(aes(stock,harvest,col=year))+
+  geom_point(aes(stock,harvest),shape=21,fill="black",col=NA)
+```
+
+## Kobe Phase Plot
+
+```{r kobe-mar}
+kobe:::kobePhaseMar2(subset(kobe(res[[1]]),year%in%60:80)[c("stock","harvest")])
+```
+
+## Operating Model Time Series
+
+```{r om}
+plot(res[[1]])+
+ geom_hline(aes(yintercept=X1),col="orange",
+            data=cbind(qname=c("Yield","Harvest","Stock"),data.frame(iter(refpts(om),1))))+
+ geom_line(aes(year,data,group=iter),col="grey",
+             data=transform(ldply(FLQuants(res[[1]],
+                          "Stock"=stock,
+                          "Harvest"=harvest,
+                          "Yield"=catch),function(x) 
+                                      as.data.frame(iter(x, 1:3),drop=TRUE)),
+                          qname=.id))+
+  theme_bw()+scale_x_continuous(limits=c(1,80))
+```
+
+
+## Operating Model Summary Statistics
+
+Statistics should be independent, i.e. not overlapping so that the trade-offs between management objectives are clear, for eaxmple
+
++ Safety
++ Yield
++ Stability
+
+## Operating Model Summary Statistics
+### Safety
+
+#### Probability of being in a Kobe Quadrant
+```{r safety}
+safe=kobe:::smry(kobe(res[[1]])[,c("stock","harvest")])
+
+rownames(safe)=""
+
+names(safe)[3:5]=c("Red","Yellow","Green")
+round(safe[c("Red","Green","Yellow")],2)
+```
+
+#### Probability of 
+
+```{r safety2}
+names(safe)[6:7]=c("Over Fished","Over Fishing")
+round(safe[c("Over Fished","Over Fishing")],2)
+```
+
+
+## Operating Model Summary Statistics
+
+### Yield
+
+Average Yield as a ratio of $MSY$
+```{r yield}
+round(mean(c(as.FLQuant(adply(harvest(window(res[[1]],start=60,end=80)),6,function(x) data.frame(data=mean(x))))))/mean(c(refpts(om)["fmsy"])),2)
+```
+
+Average Effort as a ratio of Effort at $F_{MSY}$
+```{r yield2}
+round(mean(c(as.FLQuant(adply(catch(  window(res[[1]],start=60,end=80)),6,function(x) data.frame(data=mean(x))))))/mean(c(refpts(om)["msy"])),2)
+```
+
+## Operating Model Summary Statistics
+
+### Stability
+Average Annual Variability in
+
++ Stock 6%
++ F     20%
++ Yield 21%
+
+
+```{r stability, eval=FALSE}
+paste("Stock: ", round(mean(c(aav(stock(  window(res[[1]],start=60,end=80))))),2)*100, " %", sep="")
+paste("F    : ",round(mean(c(aav(harvest(window(res[[1]],start=60,end=80))))),2)*100, " %", sep="")
+paste("Yield: ", round(mean(c(aav(catch(  window(res[[1]],start=60,end=80))))),2)*100, " %", sep="")
+```
+
+# References
+
+<!-- pb=FLBRP(ple4) -->
+<!-- pb=propagate(FLBRP(ple4),2,params=TRUE) -->
+<!-- params(pb)["a"]=2 -->
+<!-- pb=brp(pb) -->
+<!-- plot(pb) -->
+

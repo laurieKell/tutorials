@@ -387,8 +387,6 @@ params(eql)[c("a","b")]=ab(FLPar("s"=yftPar["s"],
 eql=brp(eql)
 msy=refpts(eql)["msy",1:5]
 
-plot(eql)
-
 fnJac<-function(x,params){
   params[pms]=x
   params["a50"]=vonB(params=params,length=params["lmat"])
@@ -498,10 +496,8 @@ ggplot(crv,aes(ssb,catch,group=paste(m,sel,s)))+
   theme_bw()+
   geom_line(col="grey90")+
   geom_point(aes(ssb,catch),data=rfpt,size=2.5,col="grey75",fill="grey90",shape=21)+
-  geom_point(aes(ssb,catch),data=subset(rfpt,m==m.&sel==sel.&s==s.),size=2.5,shape=21,fill="black",col="grey90")+
   geom_line(aes(ssb,catch),data=subset(crv,m==m.&sel==sel.&s==s.))+
-  geom_point(aes(ssb,catch),data=rfpt,size=2.5,col="grey75",fill="grey90",shape=21)+
-  geom_point(aes(ssb,catch),data=subset(rfpt,m==m.&sel==sel.&s==s.),size=3.5,shape=21,fill="black",col="grey90")+
+  geom_point(aes(ssb,catch),data=subset(rfpt,m==m.&sel==sel.&s==s.),size=2.5,shape=21,fill="black",col="grey90")+
   xlab("SSB")+ylab("Yield")
 ```
 
