@@ -1,6 +1,6 @@
 ---
 title: "Kobe Advice Framework of the tuna RFMOs"
-author: "Laurence Kell"
+author: "Laurence Kell & Neils Hintzen"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: rmarkdown:::html_document
 vignette: >
@@ -38,13 +38,14 @@ library(ggplot2)
 library(kobe)
 library(reshape2)
 
-dirMy="D:/Repository/DGMARETuna/tutorials/advice_framework"
-#dirMy="/home/laurie/Desktop/flr/tutorials/advice_framework"
+#dirMy="D:/Repository/DGMARETuna/tutorials/advice_framework"
+dirMy="/home/laurie/Desktop/flr/tutorials/advice_framework"
 dirTex=file.path(dirMy,"tex")
 dirDat=file.path(dirMy,"data")
 
-load(file.path(dirDat,"yft.RData"))
-load(file.path(dirDat,"prj.RData"))
+load("/home/laurie/Desktop/ownCloud/YFTAss/YFTAss/Analysis/kobe-advice/data/kb.RData")
+yft=subset(kb,year<=2014&tac==110000)
+prj=subset(kb,year>2014)
 
 trk =transform(subset(yft,year%in%1970:2014),stock=stock,harvest=harvest)[,
                   c("year","Scenario","Method","stock","harvest")]
@@ -103,7 +104,24 @@ In 2016 not only the data but the stock assessment models and scenarios changed.
 | Natural Mortality  |           |     x     |    x      |    x      |  
 | Migration          |           |           |           |           |  
 | Stock Structure    |           |           |           |           |  
-|                    |           |           |           |           |  
+
+
+### Biomass Dynamic Models
+
+These models are bases on aggregate  biomass  dynamics  controlled  by  a  low number  of  parameters:  typically  just  K  (carrying  capacity),  r  (intrinsic growth  rate),  initial  population  biomass  and  a  catchability  coefficient  related to fishing mortality. The shape of the production model can be chosen by specifying a different form of the production function.
+
+### Assessment Structure Production Model
+
+In ASPM the population dynamics are full age structure, uses a spawner-recruitment relationship (the estimable parameters of which play the role of the r and K of the biomass dynamics models) and may or may not include estimation of stochastic annual deviations in recruitment; information on natural mortality,  body weight-at-age,  maturity-at-age and  fishery  selection-at-age  must  be specified by the user; each fleet included in the model, and each abundance index used in the model fitting, can have its unique ageselection, so essentially this is a superset of the capabilities of the delay-difference, two-stage  models.  The  population  dynamics  in  an  age-structured  production model  are  carried  forward  into  statistical  catch-at-age  and  age
+-structured integrated analysis models.
+
+### Virtual Population Analysis
+
+In a VPA population  abundance  at  age  is directly  calculated from catch-at-age (treated as known and without error in every time step)and natural mortality, starting from the latest year and oldest true age for each cohort (excluding the plus group); treatment of the plus group varies among software packages; often incorporate fits to age-specific abundance indices; minimal assumptions concerning selection-at-age patterns.
+
+### Integrated Models
+
+These  models  tend  to  be  highly  general  with  regard  to  the  types  of  data  that  can  be included and, on the whole, they strive to analyze data with as little preprocessing as possible,  for  example  using  length  composition  data  and  information  in  the  age-length  key  directly,  rather  than  inputting  the  derived  age  composition  data  to  the model. Two  sub-categories are defined based upon whether the population dynamics, internal to the model, are length or age based.
 
 ## Historical Trends
 
@@ -192,10 +210,18 @@ kobe:::kobePhaseMar3(transform(subset(yft,year%in%2014),run=paste(Method,Scenari
 
 **Figure `r iFig=iFig+1; iFig`.** Phase plot
 
+```{r kpp4, eval=TRUE}
+kobe:::kobePhaseMar2(transform(subset(yft,year%in%2014),run=paste(Method,Scenario)
+                               )[,c("stock","harvest","run")])
+```
+
+**Figure `r iFig=iFig+1; iFig`.** Phase plot
+
 ### Strategy Matrix  
 
 Prediction is often used synonymously @bray2009prediction with forecast, projection and scenario. To avoid confusion we base our definitions on those of the International Panel on Climate Change @field2012managing, where a projection is a potential future evolution of a quantity or set of quantities, a prediction or forecast is the result of an attempt to produce an estimate of the actual evolution of the future, while a scenario is a possible, plausible, internally consistent, but not necessarily probable, development.
 
+![](/home/laurie/Desktop/flr/tutorials/advice_framework/tex/k2sm.png)
 
 **Figure `r iFig=iFig+1; iFig`.** Strategey matrix
 
