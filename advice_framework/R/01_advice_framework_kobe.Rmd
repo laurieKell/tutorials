@@ -82,7 +82,12 @@ The original objective of the tuna Regional Fisheries Management Organisations (
 
 To help implement the Precautionary Approach, and to meet multiple conflicting objectives, the tRFMOs are begining to simulation Harvest Control Rules (HCRs) using Management Strategy Evaluation (MSE). Where a HCR is a set of well-defined rules used for determining a management action in the form of a TAC or allowable fishing effort given input from an estimator or directly from data. This has meant a change in the way advice is developed and management implemented @kell2016quantification.
 
-## Atlantic Yellowfin Example         
+## Atlantic Yellowfin Example    
+
+http://tuna-org.org/mse.htm
+http://groupspaces.com/tRFMO-MSE/wiki/
+http://groupspaces.com/tRFMO-MSE/pages/meetings-kickoff
+http://rscloud.iccat.int/tRFMO-MSE/kickoff/albacore/ko_alb-cs_Iago-Kell.html#1
 
 http://iccat.int/com2016/
 
@@ -106,22 +111,31 @@ In 2016 not only the data but the stock assessment models and scenarios changed.
 | Stock Structure    |           |           |           |           |  
 
 
-### Biomass Dynamic Models
+#### Biomass Dynamic Models
 
 These models are bases on aggregate  biomass  dynamics  controlled  by  a  low number  of  parameters:  typically  just  K  (carrying  capacity),  r  (intrinsic growth  rate),  initial  population  biomass  and  a  catchability  coefficient  related to fishing mortality. The shape of the production model can be chosen by specifying a different form of the production function.
 
-### Assessment Structure Production Model
+#### Age Structure Production Model
 
 In ASPM the population dynamics are full age structure, uses a spawner-recruitment relationship (the estimable parameters of which play the role of the r and K of the biomass dynamics models) and may or may not include estimation of stochastic annual deviations in recruitment; information on natural mortality,  body weight-at-age,  maturity-at-age and  fishery  selection-at-age  must  be specified by the user; each fleet included in the model, and each abundance index used in the model fitting, can have its unique ageselection, so essentially this is a superset of the capabilities of the delay-difference, two-stage  models.  The  population  dynamics  in  an  age-structured  production model  are  carried  forward  into  statistical  catch-at-age  and  age
 -structured integrated analysis models.
 
-### Virtual Population Analysis
+#### Virtual Population Analysis
 
 In a VPA population  abundance  at  age  is directly  calculated from catch-at-age (treated as known and without error in every time step)and natural mortality, starting from the latest year and oldest true age for each cohort (excluding the plus group); treatment of the plus group varies among software packages; often incorporate fits to age-specific abundance indices; minimal assumptions concerning selection-at-age patterns.
 
-### Integrated Models
+#### Integrated Models
 
 These  models  tend  to  be  highly  general  with  regard  to  the  types  of  data  that  can  be included and, on the whole, they strive to analyze data with as little preprocessing as possible,  for  example  using  length  composition  data  and  information  in  the  age-length  key  directly,  rather  than  inputting  the  derived  age  composition  data  to  the model. Two  sub-categories are defined based upon whether the population dynamics, internal to the model, are length or age based.
+
+### Summary
+
+One approach to address uncertainty in historical estimates of stock status is to integrate multiple diverse datasets to try and extract as much information as possible about modelled processes. An implicit assumption is that integrated models can compensate for lack of good data. Models are by defini-
+tion, however, simplifications of reality and model misspecification can lead to degradation of results when there are multiple potentially conflicting data sets. Including all available data in stock assessments may lead to high noise levels and poor-quality assessments, the choice of data should be based on rational and justifiable selection criteria. It is therefore critical to determine what drives an assessment.
+
+### Global Albacore tRFMO Case Study
+
+rscloud.iccat.int//kickoff/themes/albacore/alb-cs.html#1
 
 ## Historical Trends
 
