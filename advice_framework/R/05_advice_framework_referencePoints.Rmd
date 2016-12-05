@@ -2,7 +2,7 @@
 title: "Assessment & advice in (tuna) RFMOs"
 author: "Laurence Kell & Niels Hintzen"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: rmarkdown:::html_document
+output: rmarkdown:::pdf_document
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{kobe}
@@ -87,6 +87,10 @@ Under biomass dynamic models, target reference points are rather easily defined.
 * $F~MSY~ = r/2$
 
 If we would take the example of Atlantic Albacore (following Polachek et al. 1993) where he estimated $r$ at 0.5 and $K$ at 200kt, we can estimate $MSY$ at 25kt, $B~MSY~$ at 100kt and $F~MSY~$ at 0.25 year^-1^.
+
+![](../tex/BDM_productionCurve.jpg)
+
+**Figure `r iFig=iFig+1; iFig`** Production curve based on Biomass Dynamic Model
 
 ## Reference points under integrated (age-based) models
 
