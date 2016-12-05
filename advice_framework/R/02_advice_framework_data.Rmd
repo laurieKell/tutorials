@@ -2,7 +2,7 @@
 title: "DG-MARE course on assessment & advice in (tuna) RFMOs"
 author: "Laurence Kell & Niels Hintzen"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: rmarkdown:::html_document
+output: rmarkdown:::pdf_document
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{kobe}
@@ -163,6 +163,7 @@ In the data-limited situation of tuna RFMOs, individual length measurements are 
 These length observations can be converted to age data using an age-length key. Each length then corresponds, with a certain probablity, to an age-group. In some Tuna RFMOs, such as ICCAT, very old age-length keys are used. This can become problematic if growth of fish changes. We've seen that fish growth can vary substantially from year to year, may vary depending on food availability under influence of density-dependent processes. We've also observed that some fish species have gotten smaller due to high fishing pressure (smaller individuals may escape more easily from fishing gear and therefore individuals that carry genes to code for smaller body size have an advantage). Hence, using a fixed or old age-length key may therefore introduce error in the available age data. In the end, this may cause problems in trying to track cohorts over time if individuals grow slower than would be expected by the age-length key, some fish stay e.g. 4-years old for 2 year in a row.   
 
 From all length measurements, a length-frequency distribution can be made. 
+
 ![](../tex/agelength2.jpg)
 
 
