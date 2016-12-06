@@ -2,7 +2,7 @@
 title: "DG-MARE course on assessment & advice in (tuna) RFMOs"
 author: "Laurence Kell & Niels Hintzen"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: rmarkdown:::html_document
+output: rmarkdown:::pdf_document
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{kobe}
